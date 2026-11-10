@@ -3,11 +3,60 @@ const escA=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 // Local-first paste extraction. The assistant produces a review object, then converts it to the existing document state.
 const Assistant=(()=>{
  const blank=()=>({type:'invoice',company:{name:'',reg:'',address:''},client:{name:'',attn:'',phone:'',email:'',address:''},doc:{no:'',date:'',due:'',payTerms:'',ref:'',currency:'MYR',taxRate:0,discountVal:0,discountType:'amount',deposit:0,method:'',txn:''},items:[],notes:'',termsText:'',bank:{bank:'',name:'',no:''},meta:{},warnings:[]});
- const linesOf=t=>String(t||'').replace(/[\u200b\ufeff]/g,'').replace(/\u00a0/g,' ').split(/\r?\n/).map(x=>x.replace(/^[•·]\s*/,'').trim()).filter(Boolean);
+ const linesOf=t=>String(t||'').replace(/[\u200b\ufeff]/g,'').replace(/\u00a0/g,' ').split(/\r\n|[\n\r\u2028\u2029]/).map(x=>x.trim()).filter(Boolean);
  const after=(lines,rx)=>{const x=lines.find(l=>rx.test(l));if(!x)return '';return x.replace(rx,'').replace(/^[:#-]\s*/,'').trim();};
  const numA=v=>{const m=String(v||'').replace(/,/g,'').match(/-?\d+(?:\.\d+)?/);return m?Number(m[0]):0;};
  const dateA=v=>{let m=String(v||'').match(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);if(m)return m[1]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[3]).padStart(2,'0');m=String(v||'').match(/(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);if(m)return m[3]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');m=String(v||'').match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);if(m){const months={january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12};const mo=months[m[2].toLowerCase()];if(mo)return m[3]+'-'+String(mo).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');}return '';};
  function typeA(t){const x=t.toLowerCase();if(/receipt|payment received|amount received/.test(x))return'receipt';if(/proforma/.test(x))return'proforma';if(/quotation|quote|valid until/.test(x))return'quotation';return'invoice';}
+ // A quoted Amount column is a line total, not necessarily a unit price. Keep both in review.
+ function parseItems(lines){
+  const rows=[];let section=false,number=0;
+  const moneyValue=s=>Number(String(s).replace(/,/g,''));
+ const push=(no,d,q,unit,price,total,explicit)=>{if(!d||!Number.isFinite(q)||q<=0)return;const line=total==null?Math.round(q*price*100)/100:total;const p=price==null?Math.round(line/q*100)/100:price;rows.push({no:String(no||++number),d:d.trim(),q,p,total:line,unit:unit||'',explicitTotal:!!explicit});number=Math.max(number,Number(no)||number);};
+  for(const line of lines){
+   if(/^(?:quotation details|item details|items|page \d+\s*[-–]\s*.+)$/i.test(line)){section=true;continue;}
+   if(/^(?:scope of work|technical specifications|terms(?:\s*&| and)\s*conditions|payment details|notes|remarks)$/i.test(line)){section=false;continue;}
+   if(/^(?:no\.?\s+)?(?:item )?description\s+qty|^no\.?\s+item description|^no\.?\s+description|^qty\s+description/i.test(line)){section=true;continue;}
+   if(/\b(?:grand total|total quotation|total amount|subtotal|sub-total|amount in words)\b/i.test(line))continue;
+   const cells=line.split(/\s*[|\t]\s*/).map(x=>x.trim()).filter(Boolean);
+   if(cells.length>=4){
+    const no=/^\d+[.)]?$/.test(cells[0])?parseInt(cells.shift(),10):null;
+    const desc=cells.shift(),qcell=cells.shift(),qty=qcell&&qcell.match(/^(\d+(?:\.\d+)?)\s*(unit|units|lot|lots|set|sets|pc|pcs|piece|pieces)?$/i);
+    const values=cells.map(c=>c.match(new RegExp('^\s*'+amount+'\s*$','i'))).filter(Boolean).map(m=>moneyValue(m[1]));
+    if(qty&&values.length){push(no,desc,Number(qty[1]),qty[2]||'',values.length>1?values[0]:null,values[values.length-1],true);continue;}
+   }
+   const numbered=line.match(/^(\d+)[.)]?\s+(.+?)\s+(\d+(?:\.\d+)?)\s*(units?|lots?|sets?|pcs?|pieces?)?\s+(?:(?:RM|MYR|USD|SGD)\s*)?([\d,]+\.\d{2})(?:\s+(?:(?:RM|MYR|USD|SGD)\s*)?([\d,]+\.\d{2}))?\s*$/i);
+   if(numbered&&(section||numbered[4])){const q=Number(numbered[3]),first=moneyValue(numbered[5]),second=numbered[6]?moneyValue(numbered[6]):null;push(numbered[1],numbered[2],q,numbered[4]||'',second==null?null:first,second==null?first:second,true);continue;}
+   const simple=line.match(/^(\d+)[.)]?\s+(.+?)\s+(?:(?:RM|MYR|USD|SGD)\s*)?([\d,]+\.\d{2})\s*$/i);
+   if(simple&&section){push(simple[1],simple[2],1,'',null,moneyValue(simple[3]),true);continue;}
+   const pipes=line.match(/^(.+?)\s*[|\t]\s*(\d+(?:\.\d+)?)\s*[|\t]\s*(?:(?:RM|MYR|USD|SGD)\s*)?([\d,]+\.\d{2})(?:\s*[|\t]\s*(?:(?:RM|MYR|USD|SGD)\s*)?([\d,]+\.\d{2}))?\s*$/i);
+   if(pipes){const q=Number(pipes[2]),first=moneyValue(pipes[3]),second=pipes[4]?moneyValue(pipes[4]):null;push(null,pipes[1],q,'',first,second,second!=null);}
+  }
+  return rows;
+ }
+ function attachItemRemarks(items,lines){
+  if(!items.length||!lines.length)return lines;
+  const blocks=[];let current=null;
+  const normalize=s=>String(s||'').toLowerCase().replace(/^\d+[.)]\s*/,'').replace(/[–—]/g,'-').replace(/[^a-z0-9]+/g,' ').trim();
+  const itemCode=s=>(String(s||'').match(/\b[A-Z]{1,5}[-–][A-Z]?\d+\b/i)||[])[0]||'';
+  for(const line of lines){
+   const heading=line.match(/^\d+[.)\u2060]?\s+(.+)$/);
+   if(heading){if(current)blocks.push(current);current={title:heading[1],lines:[],raw:[line]};}
+   else if(current){current.raw.push(line);current.lines.push(line);}
+   else blocks.push({title:'',lines:[],raw:[line]});
+  }
+  if(current)blocks.push(current);
+  const unmatched=[];
+  for(const block of blocks){
+   const title=normalize(block.title),code=itemCode(block.title).toLowerCase();
+   const candidates=items.filter(it=>{const desc=normalize(it.d),dc=itemCode(it.d).toLowerCase();return title&&(code&&dc?code===dc:(desc===title||desc.includes(title)||title.includes(desc)));});
+   if(candidates.length!==1||!block.lines.length){unmatched.push(...block.raw);continue;}
+   const it=candidates[0];
+   const details=block.lines.map(l=>l.replace(/^[\s\u2060\u200b]*[•·\-*]?[\s\u2060\u200b]*/,'').trim()).filter(Boolean).map(l=>'- '+l);
+   if(details.length)it.d=it.d+'\n'+details.join('\n');
+  }
+  return unmatched;
+ }
  function parse(t){const s=blank(),ls=linesOf(t),x=String(t||'');s.type=typeA(x);
   s.doc.no=after(ls,/(?:invoice|quotation|proforma|receipt)\s*(?:no\.?|number)?\s*[:#-]?/i)||((x.match(/\b(?:SRWK[- ]?QT[- ]?\d{4}[- ]?[\d&-]+)\b/i)||[])[0]||'');
   const dates=[...x.matchAll(/\b\d{4}[-\/]\d{1,2}[-\/]\d{1,2}\b|\b\d{1,2}[-\/]\d{1,2}[-\/]\d{4}\b|\b\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\b/gi)].map(m=>dateA(m[0]));s.doc.date=dates[0]||'';s.doc.due=dates[1]||'';
@@ -20,11 +69,10 @@ const Assistant=(()=>{
   s.doc.taxRate=numA((x.match(/(?:tax|sst|gst)[^\d]*(\d+(?:\.\d+)?)\s*%?/i)||[])[1]);const dm=x.match(/discount[^\d]*(\d+(?:\.\d+)?)\s*(%|percent)?/i);if(dm){s.doc.discountVal=numA(dm[1]);s.doc.discountType=dm[2]?'percent':'amount';}
   s.doc.deposit=numA((x.match(/(?:deposit|paid)[^\d]*([\d,]+(?:\.\d+)?)/i)||[])[1]);s.doc.payTerms=after(ls,/^(?:payment terms|terms)\s*:/i);s.doc.method=after(ls,/^(?:payment method|method)\s*:/i);s.doc.txn=after(ls,/^(?:transaction|transaction ref(?:erence)?)\s*:/i);
   s.bank.bank=after(ls,/^bank\s*:/i);s.bank.name=after(ls,/^(?:account name|account holder)\s*:/i);s.bank.no=after(ls,/^(?:account no|account number)\s*:/i);
-  ls.forEach(l=>{let m=l.match(/^\d+\s+(.+?)\s+(\d+(?:\.\d+)?)\s+(unit|units|lot|set|sets|pc|pcs|piece|pieces)\s+(?:RM|MYR)?\s*([\d,]+(?:\.\d+)?)/i);if(m){if(!/subtotal|total|tax|discount|grand total/i.test(l))s.items.push({d:m[1].trim(),q:Number(m[2]),p:numA(m[4]),unit:m[3].toLowerCase()});return;}m=l.match(/^(.+?)\s*[|\t]\s*(\d+(?:\.\d+)?)\s*[|\t]\s*(?:(?:RM|MYR|USD|SGD|EUR|GBP|CNY)\s*)?([\d,]+(?:\.\d+)?)/i);if(m&&!/subtotal|total|tax|discount|grand total/i.test(l))s.items.push({d:m[1].trim(),q:Number(m[2]),p:numA(m[3])});});
-  if(!s.items.length){ls.forEach(l=>{const m=l.match(/^(.+?)\s{2,}(\d+(?:\.\d+)?)\s+(?:RM|MYR|USD|SGD)?\s*([\d,]+(?:\.\d+)?)(?:\s|$)/i);if(m&&!/subtotal|total|tax|discount/i.test(l))s.items.push({d:m[1].trim(),q:Number(m[2]),p:numA(m[3])});});}
-  const total=/(?:^|\n)\s*(?:grand total|total quotation|total amount|amount due|balance due|amount received|total)\s*[:=]?\s*(?:RM|MYR|USD|SGD|EUR|GBP|CNY)?\s*([\d,]+(?:\.\d+)?)/im.exec(x);if(total)s.meta.total=numA(total[1]);if(total&&!s.items.length)s.items=[{d:s.type==='receipt'?'Payment received':'Imported total',q:1,p:numA(total[1])}];s.meta.amountWords=(ls.find(l=>/ringgit malaysia|dollars? only|cents? only/i.test(l))||'');s.meta.subtotals=ls.filter(l=>/(?:subtotal|sub-total)/i.test(l));
-  const scopeAt=ls.findIndex(l=>/^scope of work$/i.test(l)),techAt=ls.findIndex(l=>/^(?:technical specifications|technical details)$/i.test(l)),termsAt=ls.findIndex(l=>/^terms(?: &| and) conditions$/i.test(l));const scopeEnd=[techAt,termsAt].filter(i=>i>=0).sort((a,b)=>a-b)[0];const scopeLines=scopeAt>=0?ls.slice(scopeAt+1,scopeEnd==null?ls.length:scopeEnd):[];s.notes=scopeLines.length?scopeLines.join(NL):after(ls,/^(?:remarks|notes)\s*:/i);s.meta.techSpecs=techAt>=0?ls.slice(techAt+1,termsAt>=0?termsAt:ls.length).join(NL):'';s.termsText=termsAt>=0?ls.slice(termsAt+1).join(NL):after(ls,/^(?:terms and conditions|terms)\s*:/i);
-  const fields=['doc.no','company.name','client.name'];fields.forEach(k=>{const v=k.split('.').reduce((a,z)=>a&&a[z],s);s.meta[k]={confidence:v?'high':'low',needsReview:!v};});if(!s.client.name)s.warnings.push('Client name was not found.');if(!s.items.length)s.warnings.push('No line items were detected; add them during review.');if(!s.doc.date)s.warnings.push('Document date was not found.');return s;}
+  s.items=parseItems(ls);
+  const total=/(?:^|\n)\s*(?:grand total|total quotation|total amount|amount due|balance due|amount received|total)\s*[:=]?\s*(?:RM|MYR|USD|SGD|EUR|GBP|CNY)?\s*([\d,]+(?:\.\d+)?)/im.exec(x);if(total)s.meta.total=numA(total[1]);if(total&&!s.items.length)s.items=[{no:'1',d:s.type==='receipt'?'Payment received':'Imported total',q:1,p:numA(total[1]),total:numA(total[1]),unit:'',explicitTotal:true}];s.meta.amountWords=(ls.find(l=>/ringgit malaysia|dollars? only|cents? only/i.test(l))||'');s.meta.subtotals=ls.filter(l=>/(?:subtotal|sub-total)/i.test(l));
+  const scopeAt=ls.findIndex(l=>/^scope of work$/i.test(l)),techAt=ls.findIndex(l=>/^(?:technical specifications|technical details)$/i.test(l)),termsAt=ls.findIndex(l=>/^terms(?: &| and) conditions$/i.test(l));const scopeEnd=[techAt,termsAt].filter(i=>i>=0).sort((a,b)=>a-b)[0];const scopeLines=scopeAt>=0?ls.slice(scopeAt+1,scopeEnd==null?ls.length:scopeEnd):[];const remainingScope=attachItemRemarks(s.items,scopeLines);s.meta.itemRemarks=s.items.filter(it=>it.d.includes('\n')).length;s.notes=remainingScope.length?remainingScope.join(NL):after(ls,/^(?:remarks|notes)\s*:/i);s.meta.techSpecs=techAt>=0?ls.slice(techAt+1,termsAt>=0?termsAt:ls.length).join(NL):'';s.termsText=termsAt>=0?ls.slice(termsAt+1).join(NL):after(ls,/^(?:terms and conditions|terms)\s*:/i);
+  const fields=['doc.no','company.name','client.name'];fields.forEach(k=>{const v=k.split('.').reduce((a,z)=>a&&a[z],s);s.meta[k]={confidence:v?'high':'low',needsReview:!v};});if(!s.client.name)s.warnings.push('Client name was not found.');if(!s.items.length)s.warnings.push('No line items were detected; add them during review.');if(!s.doc.date)s.warnings.push('Document date was not found.');s.items.forEach(it=>{if(it.explicitTotal&&Math.abs(it.q*it.p-it.total)>0.01)s.warnings.push('Line '+it.no+' amount does not match quantity × unit price; review the row.');});if(s.meta.total&&s.items.length&&Math.abs(s.items.reduce((a,i)=>a+i.total,0)-s.meta.total)>0.01)s.warnings.push('Line-item totals do not match the stated grand total.');return s;}
  function toState(r){const s=defaultState();merge(s,r);if(r.meta&&r.meta.techSpecs)s.notes=String(s.notes||'')+(s.notes?'\n\nTechnical specifications:\n':'Technical specifications:\n')+r.meta.techSpecs;delete s.meta;delete s.warnings;s.doc.date=r.doc.date||today();s.doc.due=r.doc.due||addDays(s.doc.date,TYPES[r.type].dueDays);s.doc.no=r.doc.no||freeNo(r.type);s.items=r.items&&r.items.length?r.items:[{d:'',q:1,p:0}];s.docId='';s.restored=false;return s;}
  return{parse:parse,toState:toState,blank:blank};
 })();
@@ -47,4 +95,40 @@ function categoryA(label,found,detail){return `<div class='assistant-category ${
 function renderAssistantReview(){const r=assistantResult;$('#assistantInputView').classList.add('hide');$('#assistantReviewView').classList.remove('hide');const v=(p)=>p.split('.').reduce((a,k)=>a&&a[k],r)||'';const warn=r.warnings&&r.warnings.length?`<div class='assistant-warning'>${r.warnings.map(escA).join('<br>')}</div>`:'';const itemDetail=r.items.length?`${r.items.length} line item${r.items.length===1?'':'s'} detected`:'No line items detected';const categories=categoryA('Document',!!(v('doc.no')||v('doc.date')),v('doc.no')||'Document number not found')+categoryA('Company',!!(v('company.name')||v('company.address')),v('company.name')||'Company details not found')+categoryA('Client',!!v('client.name'),v('client.name')||'Client name not found')+categoryA('Line items',r.items.length>0,itemDetail)+categoryA('Totals and tax',!!(v('doc.taxRate')||v('doc.deposit')),v('doc.taxRate')?`Tax ${v('doc.taxRate')}%`: 'No totals or tax detected')+categoryA('Payment details',!!(v('bank.bank')||v('doc.method')||v('doc.payTerms')),v('bank.bank')||v('doc.method')||'No payment details detected')+categoryA('Notes and terms',!!(v('notes')||v('termsText')),v('notes')||v('termsText')||'No notes or terms detected');const fields=[fieldA('Document no.','doc.no',v('doc.no'),r.meta['doc.no']&&r.meta['doc.no'].needsReview),fieldA('Date','doc.date',v('doc.date'),!v('doc.date')),fieldA('Due date','doc.due',v('doc.due'),false),fieldA('Currency','doc.currency',v('doc.currency'),false),fieldA('Company name','company.name',v('company.name'),r.meta['company.name']&&r.meta['company.name'].needsReview),fieldA('Company address','company.address',v('company.address'),false),fieldA('Client name','client.name',v('client.name'),r.meta['client.name']&&r.meta['client.name'].needsReview),fieldA('Client email','client.email',v('client.email'),false),fieldA('Client phone','client.phone',v('client.phone'),false),fieldA('Client address','client.address',v('client.address'),false),fieldA('Tax rate (%)','doc.taxRate',v('doc.taxRate'),false),fieldA('Discount','doc.discountVal',v('doc.discountVal'),false),fieldA('Payment terms','doc.payTerms',v('doc.payTerms'),false),fieldA('Bank','bank.bank',v('bank.bank'),false),fieldA('Account no.','bank.no',v('bank.no'),false)];$('#assistantReview').innerHTML=`<div class='assistant-review-top'><label class='f'><span>Detected type</span><select data-ap='type'><option value='quotation'>Quotation</option><option value='proforma'>Proforma Invoice</option><option value='invoice'>Invoice</option><option value='receipt'>Receipt</option></select></label></div><div class='assistant-category-grid'>${categories}</div>${warn}<div class='assistant-group'><h4>Document</h4><div class='assistant-grid'>${fields.slice(0,4).join('')}</div></div><div class='assistant-group'><h4>Company and client</h4><div class='assistant-grid'>${fields.slice(4,10).join('')}</div></div><div class='assistant-group'><h4>Totals and payment</h4><div class='assistant-grid'>${fields.slice(10).join('')}</div></div><div class='assistant-group'><h4>Line items</h4><div class='assistant-items-head'><span>Description</span><span>Qty</span><span>Unit price</span><span></span></div><div id='assistantItems'>${r.items.map((it,i)=>`<div class='assistant-item' data-ai='${i}'><input data-aif='d' value='${escA(it.d)}' placeholder='Description'><input data-aif='q' type='number' value='${it.q||1}'><input data-aif='p' type='number' value='${it.p||0}'><button class='x' data-aidel='${i}'>&times;</button></div>`).join('')}</div><button class='link' id='assistantAddItem'>+ Add item</button></div>`;$('#assistantReview select[data-ap=type]').value=r.type;$('#assistantReview').addEventListener('input',assistantReviewInput,{once:false});$('#assistantAddItem').addEventListener('click',()=>{r.items.push({d:'',q:1,p:0});renderAssistantReview();});$$('#assistantReview [data-aidel]').forEach(b=>b.addEventListener('click',()=>{r.items.splice(+b.dataset.aidel,1);renderAssistantReview();}));}
  function assistantReviewInput(e){const el=e.target;if(!el.dataset.ap)return;let o=assistantResult;const p=el.dataset.ap.split('.'),k=p.pop();p.reduce((a,z)=>a[z],o)[k]=el.type==='number'?num(el.value):el.value;if(el.dataset.ap==='type')assistantResult.type=el.value;}
  function readAssistantReview(){const r=Assistant.parse('');const src=assistantResult;merge(r,src);$$('#assistantReview [data-ap]').forEach(el=>{const p=el.dataset.ap.split('.'),k=p.pop();p.reduce((a,z)=>a[z],r)[k]=el.value;});r.type=$('#assistantReview [data-ap=type]').value;r.items=$$('#assistantItems .assistant-item').map(row=>({d:row.querySelector('[data-aif=d]').value,q:num(row.querySelector('[data-aif=q]').value)||1,p:num(row.querySelector('[data-aif=p]').value)}));return r;}
+// Extend the existing review with explicit row numbers and line totals. The editor
+// persists q/p; the review retains the original amount for comparison and edits.
+const renderAssistantReviewBase=renderAssistantReview;
+renderAssistantReview=function(){
+ renderAssistantReviewBase();
+ const head=$('#assistantReview .assistant-items-head');
+ if(head)head.innerHTML='<span>No.</span><span>Description</span><span>Qty</span><span>Unit price</span><span>Total price</span><span></span>';
+ $$('#assistantItems .assistant-item').forEach((row,i)=>{
+  const it=assistantResult.items[i],desc=row.querySelector('[data-aif=d]');
+  if(!it||!desc)return;
+  const description=document.createElement('textarea');description.dataset.aif='d';description.setAttribute('aria-label','Item description and remarks');description.rows=it.d.includes('\n')?5:2;description.value=it.d;desc.replaceWith(description);
+  const no=document.createElement('input');no.dataset.aif='no';no.setAttribute('aria-label','Item number');no.value=it.no||String(i+1);row.insertBefore(no,description);
+  const total=document.createElement('input');total.dataset.aif='total';total.setAttribute('aria-label','Line total');total.type='number';total.step='0.01';total.min='0';total.value=it.total==null?round2(num(it.q)*num(it.p)):it.total;row.insertBefore(total,row.querySelector('[data-aidel]'));
+ });
+};
+const readAssistantReviewBase=readAssistantReview;
+readAssistantReview=function(){
+ const r=readAssistantReviewBase();
+ r.items=$$('#assistantItems .assistant-item').map(row=>({
+  no:row.querySelector('[data-aif=no]').value.trim(),
+  d:row.querySelector('[data-aif=d]').value.trim(),
+  q:num(row.querySelector('[data-aif=q]').value)||1,
+  p:num(row.querySelector('[data-aif=p]').value),
+  total:num(row.querySelector('[data-aif=total]').value),
+  unit:assistantResult.items[+row.dataset.ai]?.unit||''
+ }));
+ return r;
+};
+document.addEventListener('input',e=>{
+ const el=e.target,field=el.dataset?.aif,row=el.closest?.('#assistantItems .assistant-item');
+ if(!row||!['q','p','total'].includes(field))return;
+ const q=row.querySelector('[data-aif=q]'),p=row.querySelector('[data-aif=p]'),total=row.querySelector('[data-aif=total]');
+ if(field==='total')p.value=num(q.value)>0?round2(num(total.value)/num(q.value)):0;
+ else total.value=round2(num(q.value)*num(p.value));
+ const item=assistantResult.items[+row.dataset.ai];if(item){item.q=num(q.value);item.p=num(p.value);item.total=num(total.value);}
+});
 if(typeof initAssistant==='function')initAssistant();
