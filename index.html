@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8'>
+<meta name='viewport' content='width=device-width,initial-scale=1'>
+<title>Invoice Generator</title>
+<link rel='stylesheet' href='styles.css'>
+<link rel='stylesheet' href='pages.css'>
+<link rel="icon" href="assets/logo.png"></head>
+<body data-view='form' data-page='dashboard'>
+<aside class='side' id='side'>
+<img class='side-logo' src='assets/logo.png' alt='SRWK Diorama Lab'>
+<nav class='sidenav' id='sideNav'>
+<a href='#/dashboard' data-page='dashboard'><svg viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='7' height='9'/><rect x='14' y='3' width='7' height='5'/><rect x='14' y='12' width='7' height='9'/><rect x='3' y='16' width='7' height='5'/></svg><span>Dashboard</span></a>
+<a href='#/create' data-page='create'><svg viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z'/><path d='M14 3v5h5M12 11v6M9 14h6'/></svg><span>Create</span></a>
+<a href='#/library' data-page='library'><svg viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z'/><path d='M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z'/></svg><span>Library</span></a>
+</nav>
+</aside>
+<div class='main' id='main'>
+<section class='pg' id='pageCreate'>
+<header class='top'>
+<nav class='seg' id='docTabs'>
+<button data-type='quotation'>Quotation</button>
+<button data-type='proforma'>Proforma Invoice</button>
+<button data-type='invoice'>Invoice</button>
+<button data-type='receipt'>Receipt</button>
+</nav>
+<div class='sp'></div>
+<span class='status' id='saveStatus'>Draft not saved yet</span>
+<button class='btn' id='btnSave'>Save</button>
+<button class='btn primary' id='btnPdf'>Download PDF</button>
+</header>
+<nav class='mobtabs' id='mobTabs'><button data-view='form'>Fill in</button><button data-view='preview'>Preview</button></nav>
+<main class='layout'>
+<aside class='formcol'>
+<div class='formscroll' id='form'>
+<section class='sec'><h3>From</h3>
+<div class='grid'>
+<label class='f'><span>Company name</span><input data-k='company.name'></label>
+<label class='f'><span>Registration no.</span><input data-k='company.reg'></label>
+<label class='f span2'><span>Address</span><textarea data-k='company.address'></textarea></label>
+</div>
+<div class='logorow'><img id='logoThumb' alt=''><button class='btn' id='btnLogo'>Upload logo</button><button class='btn' id='btnLogoReset'>Use default</button><input type='file' id='logoFile' accept='image/*' hidden></div>
+</section>
+<section class='sec'><h3 id='billTitle'>Bill to</h3>
+<div class='grid'>
+<div class='f span2'><span>Client name</span><div class='row2'><div class='combo' id='clientCombo'><input data-k='client.name' autocomplete='off' placeholder='Type or pick from library'></div><button class='btn mini' id='saveClient'>Save to library</button></div></div>
+<label class='f'><span>Attention</span><input data-k='client.attn'></label>
+<label class='f'><span>Phone</span><input data-k='client.phone'></label>
+<label class='f span2'><span>Email</span><input data-k='client.email'></label>
+<label class='f span2'><span>Address</span><textarea data-k='client.address'></textarea></label>
+</div>
+</section>
+<section class='sec'><h3>Details</h3>
+<div class='grid'>
+<label class='f'><span id='lblNo'>Invoice no.</span><input data-k='doc.no'></label>
+<label class='f'><span>Date</span><input type='date' data-k='doc.date'></label>
+<label class='f' data-only='quotation proforma invoice'><span id='lblDue'>Due date</span><input type='date' data-k='doc.due'></label>
+<label class='f' data-only='invoice'><span>Payment terms</span><input data-k='doc.payTerms'></label>
+<label class='f' data-only='proforma invoice receipt'><span id='lblRef'>Reference</span><input data-k='doc.ref'></label>
+<label class='f' data-only='receipt'><span>Payment method</span><input data-k='doc.method'></label>
+<label class='f' data-only='receipt'><span>Transaction ref.</span><input data-k='doc.txn'></label>
+<label class='f'><span>Currency</span><select data-k='doc.currency'><option value='MYR'>RM (MYR)</option><option value='USD'>USD</option><option value='SGD'>SGD</option><option value='EUR'>EUR</option><option value='GBP'>GBP</option><option value='CNY'>CNY</option></select></label>
+</div>
+</section>
+<section class='sec'><h3 id='itemsTitle'>Items</h3>
+<div class='pickrow'><div class='combo' id='itemCombo'><input id='itemPick' autocomplete='off' placeholder='Add from library'></div></div>
+<div class='irow head' id='itemsHead'></div>
+<div id='rows'></div>
+<button class='link' id='addItem'>+ Add item</button>
+<button class='link' id='saveQuick'>Save to library</button>
+</section>
+<section class='sec'><h3>Tax and discount</h3>
+<div class='grid'>
+<label class='f'><span>Tax rate (%)</span><input type='number' min='0' step='any' data-num data-k='doc.taxRate'></label>
+<label class='f' data-only='quotation proforma invoice'><span>Discount</span><input type='number' min='0' step='any' data-num data-k='doc.discountVal'></label>
+<label class='f' data-only='quotation proforma invoice'><span>Discount type</span><select data-k='doc.discountType'><option value='amount'>Amount</option><option value='percent'>Percent (%)</option></select></label>
+<label class='f' data-only='invoice receipt'><span id='lblDeposit'>Deposit paid</span><input type='number' min='0' step='any' data-num data-k='doc.deposit'></label>
+</div>
+</section>
+<section class='sec'><h3>Notes and terms</h3>
+<div class='grid'>
+<label class='f span2'><span>Remarks</span><textarea data-k='notes'></textarea></label>
+<div class='f span2' data-only='quotation proforma invoice'><span>Terms</span><div class='pickrow'><div class='combo' id='termCombo'><input id='termPick' autocomplete='off' placeholder='Insert from library'></div><button class='btn mini' id='saveTerm'>Save as template</button></div><textarea data-k='termsText'></textarea></div>
+</div>
+</section>
+<section class='sec'><h3>Payment details</h3>
+<div class='grid'>
+<label class='f'><span>Bank</span><input data-k='bank.bank'></label>
+<label class='f'><span>Account name</span><input data-k='bank.name'></label>
+<label class='f span2'><span>Account no.</span><input data-k='bank.no'></label>
+</div>
+</section>
+<section class='sec'><h3>Page options</h3>
+<label class='tg'><span>Logo</span><input type='checkbox' data-t='logo'><i></i></label>
+<label class='tg'><span>Tax</span><input type='checkbox' data-t='tax'><i></i></label>
+<label class='tg'><span>Discount</span><input type='checkbox' data-t='discount'><i></i></label>
+<label class='tg'><span>Payment details</span><input type='checkbox' data-t='payment'><i></i></label>
+<label class='tg'><span>Terms</span><input type='checkbox' data-t='terms'><i></i></label>
+<label class='tg'><span>Signature lines</span><input type='checkbox' data-t='signature'><i></i></label>
+<div class='swatches' id='swatches'>
+<button data-accent='#825500' style='background:#825500' title='Brown gold'></button>
+<button data-accent='#333333' style='background:#333333' title='Charcoal'></button>
+<button data-accent='#2f6b4f' style='background:#2f6b4f' title='Green'></button>
+<button data-accent='#1f4e79' style='background:#1f4e79' title='Blue'></button>
+</div>
+</section>
+</div>
+<div class='sumbar' id='sumbar'></div>
+</aside>
+<section class='previewcol' id='previewCol'><div class='stage' id='stage'><div class='holder' id='holder'><div class='scaler' id='scaler'><div id='paper'></div></div></div></div></section>
+</main>
+</section>
+<section class='pg' id='pageDashboard'>
+<div class='pg-head'><h2>Dashboard</h2><div class='sp'></div><div class='newwrap'><button class='btn primary' id='btnNew'>+ New</button><div class='menu hide' id='newMenu'><button data-new='quotation'>Quotation</button><button data-new='proforma'>Proforma Invoice</button><button data-new='invoice'>Invoice</button><button data-new='receipt'>Receipt</button></div></div></div>
+<div class='pg-body'>
+<div class='cards' id='cards'></div>
+<section class='assistant-launch' id='assistantLaunch'>
+<div><div class='assistant-kicker'>SMART ASSISTANT</div><h3>Paste a quote, invoice, or receipt</h3><p>We’ll sort the details into editable fields for you to review.</p></div>
+<button class='btn primary' id='btnAssistant'>Paste with Smart Assistant</button>
+</section>
+<div class='filters'>
+<div class='seg' id='fType'><button data-v='' class='on'>All</button><button data-v='quotation'>Quotation</button><button data-v='proforma'>Proforma</button><button data-v='invoice'>Invoice</button><button data-v='receipt'>Receipt</button></div>
+<div class='seg' id='fStatus'><button data-v='' class='on'>Any status</button><button data-v='Draft'>Draft</button><button data-v='Sent'>Sent</button><button data-v='Overdue'>Overdue</button><button data-v='Paid'>Paid</button></div>
+<input class='search' id='dSearch' placeholder='Search number or client'>
+</div>
+<div class='tablewrap' id='docList'></div>
+</div>
+</section>
+<section class='pg' id='pageLibrary'>
+<div class='pg-head'><h2>Library</h2><div class='sp'></div><button class='btn primary' id='libAdd'>+ Add</button></div>
+<div class='pg-body'>
+<div class='filters'><div class='seg' id='libTabs'><button data-v='clients' class='on'>Clients</button><button data-v='items'>Items</button><button data-v='terms'>Terms</button></div><input class='search' id='libSearch' placeholder='Search'></div>
+<div class='tablewrap' id='libList'></div>
+</div>
+</section>
+</div>
+<div class='drawer-back hide' id='drawerBack'></div>
+<aside class='drawer hide' id='drawer'>
+<div class='dh'><h3 id='drawerTitle'></h3><button class='x' id='drawerClose' title='Close'>&times;</button></div>
+<div class='db' id='drawerBody'></div>
+<div class='df'><button class='btn' id='drawerDel'>Delete</button><div class='sp'></div><button class='btn' id='drawerCancel'>Cancel</button><button class='btn primary' id='drawerSave'>Save</button></div>
+</aside>
+<div class='assistant-back hide' id='assistantBack'></div>
+<aside class='assistant-panel hide' id='assistantPanel' aria-label='Smart Assistant'>
+<div class='assistant-head'><div><div class='assistant-kicker'>SMART ASSISTANT</div><h3 id='assistantTitle'>Paste content</h3></div><button class='x' id='assistantClose' title='Close'>&times;</button></div>
+<div class='assistant-body' id='assistantBody'>
+<section id='assistantInputView'>
+<p class='assistant-help'>Paste the complete content here. You can include long emails, copied tables, quotations, invoices, notes, and payment details. We will categorize it after you continue.</p>
+<label class='f assistant-paste-field'><span>Source content</span><textarea id='assistantPaste' rows='22' placeholder='Paste your full content here...'></textarea></label>
+<div class='assistant-actions'><button class='btn' id='assistantClear'>Clear</button><div class='sp'></div><button class='btn' id='assistantSettings'>AI settings</button><button class='btn primary' id='assistantParse'>Continue to categories</button></div>
+<div class='assistant-settings hide' id='assistantSettingsBox'>
+<div class='assistant-settings-title'>Optional AI enhancement</div><p class='assistant-help'>Configure an OpenAI-compatible endpoint. The pasted content is sent only when you click Enhance with AI.</p>
+<label class='f'><span>Endpoint URL</span><input id='assistantEndpoint' placeholder='https://example.com/v1/chat/completions'></label>
+<label class='f'><span>Model</span><input id='assistantModel' placeholder='gpt-4o-mini'></label>
+<label class='f'><span>API key</span><input id='assistantApiKey' type='password' placeholder='Stored locally on this browser'></label>
+<button class='btn mini' id='assistantSaveSettings'>Save settings</button>
+</div>
+</section>
+<section class='hide' id='assistantReviewView'><div id='assistantReview'></div></section>
+</div>
+<div class='assistant-foot hide' id='assistantFoot'><button class='btn' id='assistantCancel'>Cancel</button><div class='sp'></div><button class='btn' id='assistantReparse'>Re-parse</button><button class='btn' id='assistantEnhance'>Enhance with AI</button><button class='btn primary' id='assistantSave'>Save draft</button></div>
+</aside>
+<script src='vendor/html2pdf.bundle.min.js'></script>
+<script src='store.js'></script>
+<script src='app.js'></script>
+<script src='library.js'></script>
+<script src='dashboard.js'></script>
+<script src='assistant.js?v=2'></script>
+</body>
+</html>
