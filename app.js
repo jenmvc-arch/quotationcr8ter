@@ -153,11 +153,12 @@ const CE=(()=>{const d=document.createElement('div');try{d.contentEditable='plai
 let paperDirty=false,paperStale=false;
 function ed(k,ph,ml){return `<span class='ed' contenteditable='${CE}' data-k='${k}' data-ph='${esc(ph)}'${ml?` data-ml='1'`:''}>${esc(getPath(state,k))}</span>`;}
 function edI(i,f,val,ph){return `<span class='ed' contenteditable='${CE}' data-i='${i}' data-f='${f}' data-ph='${esc(ph)}'>${esc(val)}</span>`;}
+function itemDescEd(i,it){const parts=String(it.d||'').split(NL),title=parts.shift()||'';const details=parts.filter(Boolean);return `<span class='ed p-item-desc' contenteditable='${CE}' data-i='${i}' data-f='d' data-ph='${esc('Item description')}'><span class='p-item-title'>${esc(title)}</span>${details.length?`<span class='p-item-details'>${details.map(x=>`<span>${esc(x)}</span>`).join('')}</span>`:''}</span>`;}
 function kv(l,v){return `<div class='p-kv'><span class='k'>${l}</span><span class='v'>${v}</span></div>`;}
 function curLbl(){return state.doc.currency==='MYR'?'RM':state.doc.currency;}
 function rowHtml(it,i){
  const rec=state.type==='receipt';
- const lead=`<td>${i+1}</td><td>${edI(i,'d',it.d,'Item description')}</td>`;
+ const lead=`<td>${i+1}</td><td>${itemDescEd(i,it)}</td>`;
  if(rec)return `<tr>${lead}<td class='r'>${edI(i,'p',fmt(num(it.p)),'0.00')}</td></tr>`;
  return `<tr>${lead}<td class='c'>${edI(i,'q',it.q,'0')}</td><td class='r'>${edI(i,'p',fmt(num(it.p)),'0.00')}</td><td class='r' data-calc='amt:${i}'>${fmt(rowAmt(it))}</td></tr>`;}
 function headHtml(){
