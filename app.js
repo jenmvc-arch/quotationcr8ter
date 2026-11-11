@@ -219,8 +219,8 @@ function renderPaper(){
  paper.innerHTML=`<div class='page probe'>${H}${P}${tableHtml(0,n)}<div class='tailprobe' style='display:flow-root'>${B}</div>${F}</div>`;
  const pg=paper.firstChild,tb=pg.querySelector('table.p-t'),rule=pg.querySelector('.p-rule'),foot=pg.querySelector('.p-foot'),tail=pg.querySelector('.tailprobe');
  const rowH=Array.from(tb.tBodies[0].rows).map(r=>r.offsetHeight);
- const BUDGET=1123-44-38,footH=foot.offsetHeight+10,theadH=tb.tHead.offsetHeight+14;
- const headFull=tb.offsetTop-44,headMin=rule.offsetTop+rule.offsetHeight+22-44,tailH=tail.offsetHeight;
+ const BUDGET=1123-34-28,footH=foot.offsetHeight+10,theadH=tb.tHead.offsetHeight+10;
+ const headFull=tb.offsetTop-34,headMin=rule.offsetTop+rule.offsetHeight+16-34,tailH=tail.offsetHeight;
  const cap1=BUDGET-headFull-theadH-footH,capN=BUDGET-headMin-theadH-footH;
  const pages=[];let cur=[],used=0,cap=cap1;
  rowH.forEach((h,i)=>{if(cur.length&&used+h>cap){pages.push(cur);cur=[];used=0;cap=capN;}cur.push(i);used+=h;});
