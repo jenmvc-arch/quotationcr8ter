@@ -83,8 +83,9 @@ function initAssistant(){
  const open=()=>{$('#assistantPanel').classList.remove('hide');$('#assistantBack').classList.remove('hide');$('#assistantInputView').classList.remove('hide');$('#assistantReviewView').classList.add('hide');$('#assistantFoot').classList.add('hide');$('#assistantTitle').textContent='Paste content';$('#assistantPaste').focus();};
  const close=()=>{$('#assistantPanel').classList.add('hide');$('#assistantBack').classList.add('hide');};
  $('#btnAssistant').addEventListener('click',open);$('#assistantClose').addEventListener('click',close);$('#assistantCancel').addEventListener('click',close);$('#assistantBack').addEventListener('click',close);
- const cfg=Store.assistantConfig();$('#assistantEndpoint').value=cfg.endpoint||'https://api.openai.com/v1/chat/completions';$('#assistantModel').value=cfg.model||'gpt-4o-mini';$('#assistantApiKey').value=cfg.apiKey||'';
+ const cfg=Store.assistantConfig();$('#assistantEndpoint').value=cfg.endpoint||'https://max2.jojocode.com/v1/chat/completions';$('#assistantModel').value=cfg.model||'';$('#assistantApiKey').value=cfg.apiKey||'';
  $('#assistantSettings').addEventListener('click',()=>{if(typeof Auth==='undefined'||!Auth.can('aiSettings')){alert('Only approved workspace users can access AI settings.');return;}$('#assistantSettingsBox').classList.toggle('hide');});$('#assistantSaveSettings').addEventListener('click',()=>{Store.saveAssistantConfig({endpoint:$('#assistantEndpoint').value,model:$('#assistantModel').value,apiKey:$('#assistantApiKey').value});setStatus('AI settings saved');});
+ $('#assistantTestAI').addEventListener('click',testAssistantAI);
  $('#assistantClear').addEventListener('click',()=>{$('#assistantPaste').value='';assistantResult=null;$('#assistantReviewView').classList.add('hide');$('#assistantInputView').classList.remove('hide');});
  const parseNow=()=>{if(!String($('#assistantPaste').value||'').trim()){$('#assistantPaste').focus();$('#assistantPaste').setCustomValidity('Paste some content before continuing.');$('#assistantPaste').reportValidity();return;}$('#assistantPaste').setCustomValidity('');assistantResult=Assistant.parse($('#assistantPaste').value);renderAssistantReview();enhanceCategorySummary();$('#assistantTitle').textContent='Review categories';$('#assistantFoot').classList.remove('hide');};$('#assistantParse').addEventListener('click',parseNow);$('#assistantReparse').addEventListener('click',parseNow);
  $('#assistantEnhance').addEventListener('click',enhanceWithAI);
@@ -104,8 +105,8 @@ function assistantMergeAI(local,ai){
 }
 async function enhanceWithAI(){
  if(typeof Auth==='undefined'||!Auth.can('aiSettings')){alert('AI enhancement is restricted to approved workspace users.');return;}
- const c=Store.assistantConfig(),endpoint=String(c.endpoint||$('#assistantEndpoint').value||'').trim(),key=String(c.apiKey||$('#assistantApiKey').value||'').trim(),model=String(c.model||$('#assistantModel').value||'gpt-4o-mini').trim();
- if(!endpoint||!key){alert('Open AI settings, enter an endpoint and API key, then click Save settings.');return;}
+ const c=Store.assistantConfig(),endpoint=String(c.endpoint||$('#assistantEndpoint').value||'').trim(),key=String(c.apiKey||$('#assistantApiKey').value||'').trim(),model=String(c.model||$('#assistantModel').value||'').trim();
+ if(!endpoint||!key||!model){alert('Open AI settings, enter the JOJO endpoint, model name, and API key, then click Save settings.');return;}
  const source=String($('#assistantPaste').value||'').trim();if(!source)return;
  const b=$('#assistantEnhance');b.disabled=true;b.textContent='Enhancing...';
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),30000);
@@ -119,6 +120,12 @@ async function enhanceWithAI(){
   assistantResult=assistantMergeAI(Assistant.parse(source),assistantJson(content));renderAssistantReview();enhanceCategorySummary();alert('AI enhancement complete. Review the extracted fields before saving.');
  }catch(e){alert((e.name==='AbortError'?'AI request timed out. ': 'AI enhancement failed: '+e.message+' ' )+'The local parse is still available.');}
  finally{clearTimeout(timer);b.disabled=false;b.textContent='Enhance with AI';}
+}
+async function testAssistantAI(){
+ if(typeof Auth==='undefined'||!Auth.can('aiSettings'))return;
+ const endpoint=String($('#assistantEndpoint').value||'').trim().replace(/\/chat\/completions\/?$/,'/models'),key=String($('#assistantApiKey').value||'').trim();
+ if(!endpoint||!key){alert('Enter the endpoint and API key first.');return;}
+ const b=$('#assistantTestAI');if(b)b.disabled=true;try{const r=await fetch(endpoint,{headers:{Authorization:'Bearer '+key}});const j=await r.json();if(!r.ok)throw Error(j.error?.message||'Could not load models.');const models=(j.data||[]).map(x=>x.id).filter(Boolean);alert(models.length?'Connection works. Available models: '+models.slice(0,12).join(', '):'Connection works, but no model list was returned.');}catch(e){alert('JOJO connection failed: '+e.message);}finally{if(b)b.disabled=false;}
 }
 function fieldA(label,path,val,review){return `<label class='assistant-field ${review?'needs-review':''}'><span>${escA(label)}${review?` <em>Review</em>`:''}</span><input data-ap='${path}' value='${escA(val)}'></label>`;}
 function categoryA(label,found,detail){return `<div class='assistant-category ${found?'found':'missing'}'><span class='assistant-category-icon'>${found?'✓':'!'}</span><div><strong>${escA(label)}</strong><small>${escA(detail|| (found?'Detected from pasted content':'Add during review'))}</small></div><em>${found?'Detected':'Needs input'}</em></div>`;}
