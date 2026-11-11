@@ -10,7 +10,26 @@
 <link rel='stylesheet' href='modern-saas.css'>
 <link rel="icon" href="assets/logo.png"></head>
 <body data-view='form' data-page='dashboard'>
-<div class='auth-gate' id='authGate'><div class='auth-card'><div class='assistant-kicker'>YSYD workspace</div><h1>Quotation Create</h1><p>Set up or sign in to your workspace.</p><section id='authSetupView'><label class='f'><span>Admin password</span><input id='authSetupPassword' type='password'></label><button class='btn primary' id='authSetup'>Create ysyd admin</button></section><section id='authLoginView' class='hide'><label class='f'><span>Username</span><input id='authUsername' value='ysyd admin'></label><label class='f'><span>Password</span><input id='authPassword' type='password'></label><button class='btn primary' id='authLogin'>Sign in</button></section></div></div>
+<div class='auth-gate' id='authGate'>
+<section class='auth-art' aria-label='Diorama studio preview'>
+<div class='auth-art-top'><span>SRWK Diorama Lab</span><span>Scale 1:24</span></div>
+<div class='auth-art-copy'><h2>Small worlds.<br><em>Carefully made.</em></h2><p>Your quotation workspace for miniature builds, museum replicas, and exhibition craft.</p></div>
+<div class='diorama-scene' aria-hidden='true'>
+<div class='scene-back'></div><div class='scene-shelf shelf-one'></div><div class='scene-shelf shelf-two'></div>
+<div class='scene-block block-one'></div><div class='scene-block block-two'></div><div class='scene-block block-three'></div>
+<div class='scene-tree tree-one'><i></i><b></b><span></span></div><div class='scene-tree tree-two'><i></i><b></b><span></span></div>
+<div class='scene-figure figure-one'><i></i><b></b></div><div class='scene-ruler'><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+</div>
+<div class='auth-art-foot'><span>Sketch</span><span>Build</span><span>Present</span></div>
+</section>
+<div class='auth-card'>
+<img class='auth-logo' src='assets/logo.png' alt='SRWK Diorama Lab'>
+<div class='assistant-kicker'>YSYD workspace</div><h1>Quotation Create</h1><p class='auth-intro'>Bring your next miniature project into focus.</p>
+<section id='authSetupView'><label class='f'><span>Admin password</span><input id='authSetupPassword' type='password' autocomplete='new-password'></label><button class='btn primary' id='authSetup'>Create ysyd admin</button><small class='auth-note'>Create the workspace administrator to get started.</small></section>
+<section id='authLoginView' class='hide'><label class='f'><span>Username</span><input id='authUsername' value='ysyd admin' autocomplete='username'></label><label class='f'><span>Password</span><input id='authPassword' type='password' autocomplete='current-password'></label><button class='btn primary' id='authLogin'>Sign in</button><small class='auth-note'>Use your workspace account to continue.</small></section>
+<div class='auth-footnote'><span class='auth-mark'></span>For quotation, invoice, and exhibition documentation</div>
+</div>
+</div>
 <aside class='side' id='side'>
 <img class='side-logo' src='assets/logo.png' alt='SRWK Diorama Lab'>
 <nav class='sidenav' id='sideNav'>
