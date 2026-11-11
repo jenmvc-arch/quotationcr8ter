@@ -1,8 +1,8 @@
 /* Modern workspace layer: keeps the existing document engine, refreshes the product shell. */
 :root{
-  --brand:#5b5bd6;
-  --brand-strong:#4545bb;
-  --brand-soft:#ececff;
+  --brand:#4d5bd5;
+  --brand-strong:#3947bf;
+  --brand-soft:#eef0ff;
   --ink:#172033;
   --muted:#68738a;
   --line:#e4e8f0;
@@ -16,13 +16,13 @@
 }
 
 *{scrollbar-color:#cbd2df transparent;scrollbar-width:thin}
-body{font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f6f8fc;color:var(--ink);letter-spacing:0}
+body{font-family:"Avenir Next",ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f6f8fc;color:var(--ink);letter-spacing:0}
 button,input,select,textarea{font-family:inherit}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(91,91,214,.24);outline-offset:2px}
 
 /* Application rail */
 .side{width:236px;padding:22px 14px 16px;background:var(--nav);border:0;color:#fff;box-shadow:8px 0 28px rgba(23,35,63,.08);z-index:3}
-.side-logo{width:174px;height:auto;max-height:66px;object-fit:contain;object-position:left center;margin:0 12px 42px;filter:drop-shadow(0 5px 10px rgba(0,0,0,.12))}
+.side-logo{width:174px;height:auto;max-height:66px;object-fit:contain;object-position:left center;margin:0 12px 42px;padding:7px;background:#fff;border-radius:9px;filter:drop-shadow(0 5px 10px rgba(0,0,0,.12))}
 .sidenav{gap:5px}
 .sidenav a{position:relative;padding:11px 14px;color:var(--nav-muted);font-size:13px;font-weight:500;border-radius:8px;transition:background .16s ease,color .16s ease}
 .sidenav a svg{opacity:.82}
@@ -59,7 +59,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .assistant-launch{align-items:center;background:#202c52;border:0;border-radius:14px;padding:22px 24px;margin-bottom:26px;box-shadow:0 12px 24px rgba(26,38,75,.15)}
 .assistant-launch h3{font-size:17px;font-weight:650;letter-spacing:-.02em;color:#fff;margin:3px 0 5px}
 .assistant-launch p{font-size:12px;color:#b9c5dd}
-.assistant-kicker{font-size:10px;letter-spacing:.1em;color:#aeb7ff;font-weight:700}
+.assistant-kicker{font-size:11px;letter-spacing:.01em;color:#aeb7ff;font-weight:700}
 .assistant-launch .btn.primary{background:#fff;color:#252b5d;border-color:#fff;box-shadow:none}
 .assistant-launch .btn.primary:hover{background:#f0f1ff;color:#252b5d}
 .filters{gap:10px;margin-bottom:15px}
@@ -116,7 +116,7 @@ input:focus,select:focus,textarea:focus{outline:3px solid rgba(91,91,214,.18);bo
 /* Responsive behavior */
 @media (max-width:1100px){
   .side{width:76px;padding:18px 8px}
-  .side-logo{width:52px;height:52px;object-fit:cover;object-position:left;margin:0 4px 34px}
+  .side-logo{width:52px;height:52px;object-fit:contain;object-position:center;margin:0 4px 34px;padding:5px}
   .sidenav a{justify-content:center;padding:11px}
   .sidenav a span{display:none}
   .sidenav a.on:before{left:-8px}
