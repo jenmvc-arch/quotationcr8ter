@@ -1,34 +1,37 @@
 /* Modern workspace layer: keeps the existing document engine, refreshes the product shell. */
 :root{
-  --brand:#4d5bd5;
-  --brand-strong:#3947bf;
-  --brand-soft:#eef0ff;
+  --brand:#2563eb;
+  --brand-strong:#1d4ed8;
+  --brand-soft:#eff6ff;
   --ink:#172033;
   --muted:#68738a;
   --line:#e4e8f0;
   --panel:#f4f6fa;
   --sand:#fff7e8;
   --sand-line:#f0d69a;
-  --nav:#17233f;
+  --nav:#101b33;
   --nav-muted:#aeb8cc;
   --success:#238462;
   --danger:#c23b52;
+  --assistant:#ea580c;
 }
 
 *{scrollbar-color:#cbd2df transparent;scrollbar-width:thin}
-body{font-family:"Avenir Next",ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f6f8fc;color:var(--ink);letter-spacing:0}
+body{font-family:"Avenir Next",ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f6f8fc;color:var(--ink);letter-spacing:0;font-size:14px}
 button,input,select,textarea{font-family:inherit}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(91,91,214,.24);outline-offset:2px}
 
 /* Application rail */
-.side{width:236px;padding:22px 14px 16px;background:var(--nav);border:0;color:#fff;box-shadow:8px 0 28px rgba(23,35,63,.08);z-index:3}
+.side{width:236px;padding:22px 14px 16px;background:var(--nav);border:0;color:#fff;box-shadow:8px 0 28px rgba(16,27,51,.16);z-index:3}
 .side-logo{width:174px;height:auto;max-height:66px;object-fit:contain;object-position:left center;margin:0 12px 42px;padding:7px;background:#fff;border-radius:9px;filter:drop-shadow(0 5px 10px rgba(0,0,0,.12))}
 .sidenav{gap:5px}
 .sidenav a{position:relative;padding:11px 14px;color:var(--nav-muted);font-size:13px;font-weight:500;border-radius:8px;transition:background .16s ease,color .16s ease}
 .sidenav a svg{opacity:.82}
 .sidenav a:hover{color:#fff;background:rgba(255,255,255,.07)}
-.sidenav a.on{color:#fff;background:rgba(111,111,228,.24)}
-.sidenav a.on:before{content:"";position:absolute;left:-14px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:#8f8ff2}
+.sidenav a.on{color:#fff;background:rgba(37,99,235,.25)}
+.sidenav a.on:before{content:"";position:absolute;left:-14px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:#60a5fa}
+.sidenav a[data-page='company']{margin-top:22px}
+.side:after{content:"YSYD workspace";margin:auto 12px 3px;color:#71809d;font-size:11px;letter-spacing:.02em}
 .main{background:#f6f8fc}
 .pg{min-width:0}
 
@@ -38,7 +41,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .pg-body{padding:28px 34px 40px}
 .btn{height:38px;padding:0 15px;border:1px solid #d9deea;border-radius:8px;background:#fff;color:#33405a;font-size:13px;font-weight:600;box-shadow:0 1px 1px rgba(20,30,55,.02);transition:border-color .16s ease,background .16s ease,box-shadow .16s ease,transform .16s ease}
 .btn:hover{border-color:#9ca6c4;color:var(--ink);box-shadow:0 4px 12px rgba(32,43,82,.08);transform:translateY(-1px)}
-.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 5px 14px rgba(91,91,214,.22)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 5px 14px rgba(37,99,235,.22)}
 .btn.primary:hover{background:var(--brand-strong);border-color:var(--brand-strong);color:#fff}
 .btn.mini{height:32px;border-radius:7px;font-size:12px}
 .status{color:var(--muted)}
@@ -56,12 +59,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .card .v{font-size:26px;line-height:1.15;font-weight:650;letter-spacing:-.04em;color:var(--ink);margin-top:11px}
 .card .s{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.45}
 .card.warn .v{color:var(--danger)}
-.assistant-launch{align-items:center;background:#202c52;border:0;border-radius:14px;padding:22px 24px;margin-bottom:26px;box-shadow:0 12px 24px rgba(26,38,75,.15)}
+.assistant-launch{align-items:center;background:#172342;border:0;border-radius:14px;padding:22px 24px;margin-bottom:26px;box-shadow:0 12px 24px rgba(16,27,51,.15)}
 .assistant-launch h3{font-size:17px;font-weight:650;letter-spacing:-.02em;color:#fff;margin:3px 0 5px}
 .assistant-launch p{font-size:12px;color:#b9c5dd}
-.assistant-kicker{font-size:11px;letter-spacing:.01em;color:#aeb7ff;font-weight:700}
-.assistant-launch .btn.primary{background:#fff;color:#252b5d;border-color:#fff;box-shadow:none}
-.assistant-launch .btn.primary:hover{background:#f0f1ff;color:#252b5d}
+.assistant-kicker{font-size:11px;letter-spacing:.01em;color:#93c5fd;font-weight:700}
+.assistant-launch .btn.primary{background:var(--assistant);color:#fff;border-color:var(--assistant);box-shadow:0 5px 14px rgba(234,88,12,.22)}
+.assistant-launch .btn.primary:hover{background:#c2410c;color:#fff;border-color:#c2410c}
 .filters{gap:10px;margin-bottom:15px}
 .filters .seg{background:#fff;border-color:var(--line);border-radius:9px;padding:3px}
 .filters .seg button{padding:7px 11px;border-radius:6px;font-size:12px}
@@ -119,6 +122,8 @@ input:focus,select:focus,textarea:focus{outline:3px solid rgba(91,91,214,.18);bo
   .side-logo{width:52px;height:52px;object-fit:contain;object-position:center;margin:0 4px 34px;padding:5px}
   .sidenav a{justify-content:center;padding:11px}
   .sidenav a span{display:none}
+  .sidenav a[data-page='company']{margin-top:22px}
+  .side:after{content:"";margin:0}
   .sidenav a.on:before{left:-8px}
   .pg-head{padding:0 20px}
   .pg-body{padding:22px 20px 32px}
@@ -130,6 +135,7 @@ input:focus,select:focus,textarea:focus{outline:3px solid rgba(91,91,214,.18);bo
   .side{width:100%;padding:6px 8px;background:var(--nav);border-top:0}
   .sidenav a.on:before{display:none}
   .sidenav a{padding:7px 4px;font-size:10px}
+  .sidenav a[data-page='company']{margin-top:0}
   .sidenav a svg{width:16px;height:16px}
   #pageDashboard>.workspace-tools{height:48px;padding:10px 16px 0}
   #pageDashboard>.pg-head{height:78px;padding:4px 16px 0}
