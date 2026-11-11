@@ -118,7 +118,21 @@ function saveNow(manual){
  clearTimeout(saveTimer);state.nos[state.type]=state.doc.no;
  const ok=write(KEYS.draft,state)&&write(KEYS.profile,{company:state.company,bank:state.bank,logo:state.logo});
  let docOk=true;
- if(manual){commitNo();const id=Store.saveDoc(state,calc(state).grand);docOk=!!id;if(id){state.docId=id;write(KEYS.draft,state);markClean();if(typeof GoogleSync!=='undefined')GoogleSync.saveDocument(Store.getDoc(id)).then(r=>{if(r.synced)setStatus('Saved and synced');else if(r.queued)setStatus('Saved locally; sync queued');});}}
+ if(manual){
+  commitNo();
+  const id=Store.saveDoc(state,calc(state).grand);
+  docOk=!!id;
+  if(id){
+   state.docId=id;write(KEYS.draft,state);markClean();
+   if(typeof GoogleSync!=='undefined'){
+    setStatus('Saved locally; syncing...');
+    GoogleSync.saveDocument(Store.getDoc(id)).then(r=>{
+     if(r.synced)setStatus('Saved and synced');
+     else if(r.queued)setStatus('Saved locally; sync queued');
+    });
+   }
+  }
+ }
  const d=new Date();
  setStatus(ok&&docOk?(manual?'Saved ':'Auto-saved ')+pad(d.getHours())+':'+pad(d.getMinutes()):'Could not save: browser storage is full');}
 function changed(skipPaper){renderSum();if(skipPaper)syncForm();else renderPaper();scheduleSave();}

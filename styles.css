@@ -125,3 +125,5 @@ body:not(.exporting) .ed{cursor:text;border-radius:3px}
 body:not(.exporting) .ed:hover,body:not(.exporting) .ed:focus{outline:1px dashed #c9a766;outline-offset:2px;background:rgba(130,85,0,.06)}
 body:not(.exporting) .p-tag .ed:hover,body:not(.exporting) .p-tag .ed:focus{outline-color:#ffffff;background:rgba(255,255,255,.14)}
 @media (max-width:1100px){.mobtabs{display:flex;flex:none;gap:2px;padding:8px 12px;background:#fff;border-bottom:1px solid var(--line)}.mobtabs button{flex:1;height:34px;border:1px solid var(--line);background:#fff;border-radius:6px;font-size:13px;color:var(--muted)}.mobtabs button.on{background:var(--brand);border-color:var(--brand);color:#fff}.top{padding:0 12px;gap:8px;overflow-x:auto}.status{display:none}.formcol{width:100%;border-right:0}.formscroll{padding:4px 16px 16px}.sumbar{padding:10px 16px 12px}.stage{padding:14px}body[data-view='form'] .previewcol{display:none}body[data-view='preview'] .formcol{display:none}}
+body.auth-locked #side,body.auth-locked #main{visibility:hidden}
+body.auth-locked .auth-gate{visibility:visible}
