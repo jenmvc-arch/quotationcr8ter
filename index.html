@@ -108,7 +108,6 @@
 <button data-accent='#1f4e79' style='background:#1f4e79' title='Blue'></button>
 </div>
 </section>
-<section class='pg' id='pageCompany'><div class='pg-head'><h2>Company Details</h2><div class='sp'></div><button class='btn' id='companyReset'>Reset</button><button class='btn primary' id='companySave'>Save company details</button></div><div class='pg-body company-body'><div class='company-card'><div class='assistant-kicker'>MAIN BUSINESS PROFILE</div><p class='company-help'>These details are reused automatically for new quotations, proforma invoices, invoices, receipts, and PDF previews.</p><div class='grid'><label class='f'><span>Company name</span><input id='companyName'></label><label class='f'><span>Registration no.</span><input id='companyReg'></label><label class='f span2'><span>Business address</span><textarea id='companyAddress' rows='4'></textarea></label><label class='f'><span>Bank</span><input id='companyBank'></label><label class='f'><span>Account name</span><input id='companyAccountName'></label><label class='f span2'><span>Account no.</span><input id='companyAccountNo'></label></div><div class='company-logo-row'><img id='companyLogoPreview' alt='Company logo'><div><strong>Company logo</strong><p class='company-help'>Use the same logo on every new document.</p><button class='btn' id='companyLogoUpload'>Upload logo</button><button class='btn' id='companyLogoReset'>Remove logo</button><input type='file' id='companyLogoFile' accept='image/*' hidden></div></div><div class='company-status' id='companyStatus' aria-live='polite'></div></div></div></section>
 </div>
 <div class='sumbar' id='sumbar'></div>
 </aside>
@@ -138,6 +137,23 @@
 <div class='filters'><div class='seg' id='libTabs'><button data-v='clients' class='on'>Clients</button><button data-v='items'>Items</button><button data-v='terms'>Terms</button></div><input class='search' id='libSearch' placeholder='Search'></div>
 <div class='tablewrap' id='libList'></div>
 </div>
+</section>
+<section class='pg' id='pageCompany'>
+<div class='pg-head'><h2>Company Details</h2><div class='sp'></div><button class='btn' id='companyReset'>Reset</button><button class='btn primary' id='companySave'>Save company details</button></div>
+<div class='pg-body company-body'><div class='company-card'>
+<div class='assistant-kicker'>MAIN BUSINESS PROFILE</div>
+<p class='company-help'>These details are reused automatically for new quotations, proforma invoices, invoices, receipts, and PDF previews.</p>
+<div class='grid'>
+<label class='f'><span>Company name</span><input id='companyName'></label>
+<label class='f'><span>Registration no.</span><input id='companyReg'></label>
+<label class='f span2'><span>Business address</span><textarea id='companyAddress' rows='4'></textarea></label>
+<label class='f'><span>Bank</span><input id='companyBank'></label>
+<label class='f'><span>Account name</span><input id='companyAccountName'></label>
+<label class='f span2'><span>Account no.</span><input id='companyAccountNo'></label>
+</div>
+<div class='company-logo-row'><img id='companyLogoPreview' alt='Company logo'><div><strong>Company logo</strong><p class='company-help'>Use the same logo on every new document.</p><button class='btn' id='companyLogoUpload'>Upload logo</button><button class='btn' id='companyLogoReset'>Remove logo</button><input type='file' id='companyLogoFile' accept='image/*' hidden></div></div>
+<div class='company-status' id='companyStatus' aria-live='polite'></div>
+</div></div>
 </section>
 </div>
 <div class='drawer-back hide' id='drawerBack'></div>
