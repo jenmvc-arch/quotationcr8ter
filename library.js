@@ -143,7 +143,7 @@ function bindLibrary(){
   const tr=e.target.closest('tr[data-id]');if(!tr)return;
   const rec=Store.lib(libTab).find(x=>x.id===tr.dataset.id);if(rec)openLibEntry(libTab,rec);});}
 // ---------- Page routing, shared by Dashboard, Create and Library ----------
-const PAGES=['dashboard','create','library'];
+const PAGES=['dashboard','create','library','company'];
 let shownPage='';
 function curPage(){const h=String(location.hash||'').replace('#/','').replace('#','');return PAGES.indexOf(h)>=0?h:'dashboard';}
 function showPage(p){
@@ -152,6 +152,7 @@ function showPage(p){
  Pick.hide();$('#newMenu').classList.add('hide');
  if(p==='create')renderPaper();
  else if(p==='library')renderLibrary();
+ else if(p==='company'&&typeof renderCompany==='function')renderCompany();
  else if(typeof renderDashboard==='function')renderDashboard();}
 function route(){
  const p=curPage();

@@ -16,6 +16,7 @@
 <a href='#/dashboard' data-page='dashboard'><svg viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='7' height='9'/><rect x='14' y='3' width='7' height='5'/><rect x='14' y='12' width='7' height='9'/><rect x='3' y='16' width='7' height='5'/></svg><span>Dashboard</span></a>
 <a href='#/create' data-page='create'><svg viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z'/><path d='M14 3v5h5M12 11v6M9 14h6'/></svg><span>Create</span></a>
 <a href='#/library' data-page='library'><svg viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z'/><path d='M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z'/></svg><span>Library</span></a>
+<a href='#/company' data-page='company'><svg viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 21h18M5 21V6l7-3 7 3v15M9 21v-7h6v7M8 8h.01M12 8h.01M16 8h.01'/></svg><span>Company Details</span></a>
 </nav>
 </aside>
 <div class='main' id='main'>
@@ -107,6 +108,7 @@
 <button data-accent='#1f4e79' style='background:#1f4e79' title='Blue'></button>
 </div>
 </section>
+<section class='pg' id='pageCompany'><div class='pg-head'><h2>Company Details</h2><div class='sp'></div><button class='btn' id='companyReset'>Reset</button><button class='btn primary' id='companySave'>Save company details</button></div><div class='pg-body company-body'><div class='company-card'><div class='assistant-kicker'>MAIN BUSINESS PROFILE</div><p class='company-help'>These details are reused automatically for new quotations, proforma invoices, invoices, receipts, and PDF previews.</p><div class='grid'><label class='f'><span>Company name</span><input id='companyName'></label><label class='f'><span>Registration no.</span><input id='companyReg'></label><label class='f span2'><span>Business address</span><textarea id='companyAddress' rows='4'></textarea></label><label class='f'><span>Bank</span><input id='companyBank'></label><label class='f'><span>Account name</span><input id='companyAccountName'></label><label class='f span2'><span>Account no.</span><input id='companyAccountNo'></label></div><div class='company-logo-row'><img id='companyLogoPreview' alt='Company logo'><div><strong>Company logo</strong><p class='company-help'>Use the same logo on every new document.</p><button class='btn' id='companyLogoUpload'>Upload logo</button><button class='btn' id='companyLogoReset'>Remove logo</button><input type='file' id='companyLogoFile' accept='image/*' hidden></div></div><div class='company-status' id='companyStatus' aria-live='polite'></div></div></div></section>
 </div>
 <div class='sumbar' id='sumbar'></div>
 </aside>
@@ -173,6 +175,7 @@
 <script src='app.js'></script>
 <script src='library.js'></script>
 <script src='dashboard.js'></script>
+<script src='company.js'></script>
 <script src='assistant.js?v=2'></script>
 </body>
 </html>
