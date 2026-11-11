@@ -9,6 +9,7 @@
 <link rel='stylesheet' href='assistant-items.css'>
 <link rel="icon" href="assets/logo.png"></head>
 <body data-view='form' data-page='dashboard'>
+<div class='auth-gate' id='authGate'><div class='auth-card'><div class='assistant-kicker'>YSYD WORKSPACE</div><h1>Quotation Create</h1><p>Set up or sign in to your workspace.</p><section id='authSetupView'><label class='f'><span>Admin password</span><input id='authSetupPassword' type='password'></label><button class='btn primary' id='authSetup'>Create ysyd admin</button></section><section id='authLoginView' class='hide'><label class='f'><span>Username</span><input id='authUsername' value='ysyd admin'></label><label class='f'><span>Password</span><input id='authPassword' type='password'></label><button class='btn primary' id='authLogin'>Sign in</button></section></div></div>
 <aside class='side' id='side'>
 <img class='side-logo' src='assets/logo.png' alt='SRWK Diorama Lab'>
 <nav class='sidenav' id='sideNav'>
@@ -113,6 +114,7 @@
 </main>
 </section>
 <section class='pg' id='pageDashboard'>
+<div class='workspace-tools'><span id='authUserLabel' class='auth-user'></span><button class='btn hide' id='btnWorkspace'>Workspace</button><button class='btn' id='authLogout'>Sign out</button></div>
 <div class='pg-head'><h2>Dashboard</h2><div class='sp'></div><div class='newwrap'><button class='btn primary' id='btnNew'>+ New</button><div class='menu hide' id='newMenu'><button data-new='quotation'>Quotation</button><button data-new='proforma'>Proforma Invoice</button><button data-new='invoice'>Invoice</button><button data-new='receipt'>Receipt</button></div></div></div>
 <div class='pg-body'>
 <div class='cards' id='cards'></div>
@@ -137,6 +139,7 @@
 </section>
 </div>
 <div class='drawer-back hide' id='drawerBack'></div>
+<div class='workspace-back hide' id='workspacePanel'><section class='workspace-card'><div class='dh'><h3>Workspace access</h3><button class='x' id='workspaceClose'>&times;</button></div><div class='db'><h4>Add user</h4><div class='workspace-add'><input id='newUserName' placeholder='Full name'><input id='newUsername' placeholder='Username'><input id='newUserPassword' type='password' placeholder='Temporary password'><button class='btn primary' id='workspaceAdd'>Add user</button></div><h4>Users and permissions</h4><div id='workspaceUsers'></div></div></section></div>
 <aside class='drawer hide' id='drawer'>
 <div class='dh'><h3 id='drawerTitle'></h3><button class='x' id='drawerClose' title='Close'>&times;</button></div>
 <div class='db' id='drawerBody'></div>
@@ -164,6 +167,7 @@
 </aside>
 <script src='vendor/html2pdf.bundle.min.js'></script>
 <script src='store.js'></script>
+<script src='auth.js'></script>
 <script src='google-sync.js'></script>
 <script src='app.js'></script>
 <script src='library.js'></script>
