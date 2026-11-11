@@ -73,7 +73,7 @@ const Store=(()=>{
    wr(K.terms,t);}
   if(rd(K.clients,null)===null)wr(K.clients,[]);}
 
- function assistantConfig(){return rd(K.assistant,{endpoint:'',model:'',apiKey:''});}
+ function assistantConfig(){return rd(K.assistant,{endpoint:'https://api.openai.com/v1/chat/completions',model:'gpt-4o-mini',apiKey:''});}
  function saveAssistantConfig(v){return wr(K.assistant,{endpoint:String(v.endpoint||'').trim(),model:String(v.model||'').trim(),apiKey:String(v.apiKey||'').trim()});}
  return{K:K,uid:uid,r2:r2,clone:clone,statusList:statusList,validStatus:validStatus,effStatus:effStatus,todayStr:todayStr,docs:docs,getDoc:getDoc,saveDoc:saveDoc,setStatus:setStatus,removeDoc:removeDoc,duplicateDoc:duplicateDoc,stats:stats,lib:lib,libSave:libSave,libRemove:libRemove,migrate:migrate,assistantConfig:assistantConfig,saveAssistantConfig:saveAssistantConfig};
 })();

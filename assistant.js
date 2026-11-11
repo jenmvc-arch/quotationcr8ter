@@ -83,12 +83,42 @@ function initAssistant(){
  const open=()=>{$('#assistantPanel').classList.remove('hide');$('#assistantBack').classList.remove('hide');$('#assistantInputView').classList.remove('hide');$('#assistantReviewView').classList.add('hide');$('#assistantFoot').classList.add('hide');$('#assistantTitle').textContent='Paste content';$('#assistantPaste').focus();};
  const close=()=>{$('#assistantPanel').classList.add('hide');$('#assistantBack').classList.add('hide');};
  $('#btnAssistant').addEventListener('click',open);$('#assistantClose').addEventListener('click',close);$('#assistantCancel').addEventListener('click',close);$('#assistantBack').addEventListener('click',close);
- const cfg=Store.assistantConfig();$('#assistantEndpoint').value=cfg.endpoint;$('#assistantModel').value=cfg.model;$('#assistantApiKey').value=cfg.apiKey;
+ const cfg=Store.assistantConfig();$('#assistantEndpoint').value=cfg.endpoint||'https://api.openai.com/v1/chat/completions';$('#assistantModel').value=cfg.model||'gpt-4o-mini';$('#assistantApiKey').value=cfg.apiKey||'';
  $('#assistantSettings').addEventListener('click',()=>{if(typeof Auth==='undefined'||!Auth.can('aiSettings')){alert('Only approved workspace users can access AI settings.');return;}$('#assistantSettingsBox').classList.toggle('hide');});$('#assistantSaveSettings').addEventListener('click',()=>{Store.saveAssistantConfig({endpoint:$('#assistantEndpoint').value,model:$('#assistantModel').value,apiKey:$('#assistantApiKey').value});setStatus('AI settings saved');});
  $('#assistantClear').addEventListener('click',()=>{$('#assistantPaste').value='';assistantResult=null;$('#assistantReviewView').classList.add('hide');$('#assistantInputView').classList.remove('hide');});
  const parseNow=()=>{if(!String($('#assistantPaste').value||'').trim()){$('#assistantPaste').focus();$('#assistantPaste').setCustomValidity('Paste some content before continuing.');$('#assistantPaste').reportValidity();return;}$('#assistantPaste').setCustomValidity('');assistantResult=Assistant.parse($('#assistantPaste').value);renderAssistantReview();enhanceCategorySummary();$('#assistantTitle').textContent='Review categories';$('#assistantFoot').classList.remove('hide');};$('#assistantParse').addEventListener('click',parseNow);$('#assistantReparse').addEventListener('click',parseNow);
- $('#assistantEnhance').addEventListener('click',async()=>{if(typeof Auth==='undefined'||!Auth.can('aiSettings')){alert('AI enhancement is restricted to approved workspace users.');return;}const c=Store.assistantConfig();if(!c.endpoint){alert('Save an AI endpoint first, or use local parsing.');return;}const b=$('#assistantEnhance');b.disabled=true;b.textContent='Enhancing...';try{const res=await fetch(c.endpoint,{method:'POST',headers:{'Content-Type':'application/json',...(c.apiKey?{Authorization:'Bearer '+c.apiKey}:{})},body:JSON.stringify({model:c.model||'gpt-4o-mini',messages:[{role:'system',content:'Return only JSON matching the invoice extraction schema.'},{role:'user',content:$('#assistantPaste').value}],temperature:0})});if(!res.ok)throw Error('Request failed');const j=await res.json();const content=j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content;assistantResult=Object.assign(Assistant.parse($('#assistantPaste').value),JSON.parse(String(content).replace(/^```json|```$/g,'').trim()));renderAssistantReview();}catch(e){alert('AI enhancement failed. The local parse is still available.');}finally{b.disabled=false;b.textContent='Enhance with AI';}});
+ $('#assistantEnhance').addEventListener('click',enhanceWithAI);
  $('#assistantSave').addEventListener('click',()=>{if(!assistantResult)return;const r=readAssistantReview();const s=Assistant.toState(r);const id=Store.saveDoc(s,calc(s).grand);if(!id){alert('Could not save draft in browser storage.');return;}s.docId=id;state=s;write(KEYS.draft,s);markClean();if(typeof GoogleSync!=='undefined')GoogleSync.saveDocument(Store.getDoc(id));close();openState(s,'New draft saved');});
+}
+function assistantJson(text){
+ const raw=String(text||'').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');
+ try{return JSON.parse(raw);}catch(e){const a=raw.indexOf('{'),b=raw.lastIndexOf('}');if(a>=0&&b>a)return JSON.parse(raw.slice(a,b+1));throw Error('AI returned invalid JSON.');}
+}
+function assistantMergeAI(local,ai){
+ const out=Assistant.parse('');merge(out,local);if(!ai||typeof ai!=='object')throw Error('AI returned an empty result.');
+ ['type','items','notes','termsText'].forEach(k=>{if(ai[k]!==undefined)out[k]=ai[k];});
+ ['company','client','doc','bank'].forEach(k=>{if(ai[k]&&typeof ai[k]==='object')merge(out[k],ai[k]);});
+ if(!['quotation','proforma','invoice','receipt'].includes(out.type))out.type=local.type||'quotation';
+ out.items=Array.isArray(out.items)?out.items.map((it,i)=>({no:it.no==null?String(i+1):String(it.no),d:String(it.d||it.description||''),q:Number(it.q||it.quantity||1)||1,p:Number(it.p||it.unitPrice||0)||0,total:Number(it.total||it.totalPrice||0)||0,unit:String(it.unit||'unit')})):local.items;
+ return out;
+}
+async function enhanceWithAI(){
+ if(typeof Auth==='undefined'||!Auth.can('aiSettings')){alert('AI enhancement is restricted to approved workspace users.');return;}
+ const c=Store.assistantConfig(),endpoint=String(c.endpoint||$('#assistantEndpoint').value||'').trim(),key=String(c.apiKey||$('#assistantApiKey').value||'').trim(),model=String(c.model||$('#assistantModel').value||'gpt-4o-mini').trim();
+ if(!endpoint||!key){alert('Open AI settings, enter an endpoint and API key, then click Save settings.');return;}
+ const source=String($('#assistantPaste').value||'').trim();if(!source)return;
+ const b=$('#assistantEnhance');b.disabled=true;b.textContent='Enhancing...';
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),30000);
+ const schema='Return JSON only with this shape: {type, company:{name,reg,address}, client:{name,attn,phone,email,address}, doc:{no,date,due,payTerms,ref,currency,taxRate,discountVal,discountType,deposit,method,txn}, items:[{no,d,q,unit,p,total}], notes, termsText, bank:{bank,name,no}}. Preserve item remarks in d after the main title separated by new lines. Do not invent missing values.';
+ try{
+  const request={model,messages:[{role:'system',content:schema},{role:'user',content:source}],temperature:0};if(/api\.openai\.com/i.test(endpoint))request.response_format={type:'json_object'};
+  const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+key},body:JSON.stringify(request),signal:controller.signal});
+  const body=await res.text();let json;try{json=JSON.parse(body);}catch(e){throw Error('AI endpoint returned invalid JSON.');}
+  if(!res.ok)throw Error((json.error&&json.error.message)||json.message||('AI request failed ('+res.status+').'));
+  const content=json.choices?.[0]?.message?.content||json.output_text||json.content;if(!content)throw Error('AI response did not contain extracted content.');
+  assistantResult=assistantMergeAI(Assistant.parse(source),assistantJson(content));renderAssistantReview();enhanceCategorySummary();alert('AI enhancement complete. Review the extracted fields before saving.');
+ }catch(e){alert((e.name==='AbortError'?'AI request timed out. ': 'AI enhancement failed: '+e.message+' ' )+'The local parse is still available.');}
+ finally{clearTimeout(timer);b.disabled=false;b.textContent='Enhance with AI';}
 }
 function fieldA(label,path,val,review){return `<label class='assistant-field ${review?'needs-review':''}'><span>${escA(label)}${review?` <em>Review</em>`:''}</span><input data-ap='${path}' value='${escA(val)}'></label>`;}
 function categoryA(label,found,detail){return `<div class='assistant-category ${found?'found':'missing'}'><span class='assistant-category-icon'>${found?'✓':'!'}</span><div><strong>${escA(label)}</strong><small>${escA(detail|| (found?'Detected from pasted content':'Add during review'))}</small></div><em>${found?'Detected':'Needs input'}</em></div>`;}
