@@ -22,7 +22,7 @@ const Assistant=(()=>{
    if(cells.length>=4){
     const no=/^\d+[.)]?$/.test(cells[0])?parseInt(cells.shift(),10):null;
     const desc=cells.shift(),qcell=cells.shift(),qty=qcell&&qcell.match(/^(\d+(?:\.\d+)?)\s*(unit|units|lot|lots|set|sets|pc|pcs|piece|pieces)?$/i);
-    const values=cells.map(c=>c.match(new RegExp('^\s*'+amount+'\s*$','i'))).filter(Boolean).map(m=>moneyValue(m[1]));
+    const values=cells.map(c=>c.match(/^\s*(?:(?:RM|MYR|USD|SGD|EUR|GBP|CNY)\s*)?([\d,]+(?:\.\d{1,2})?)\s*$/i)).filter(Boolean).map(m=>moneyValue(m[1]));
     if(qty&&values.length){push(no,desc,Number(qty[1]),qty[2]||'',values.length>1?values[0]:null,values[values.length-1],true);continue;}
    }
    const numbered=line.match(/^(\d+)[.)]?\s+(.+?)\s+(\d+(?:\.\d+)?)\s*(units?|lots?|sets?|pcs?|pieces?)?\s+(?:(?:RM|MYR|USD|SGD)\s*)?([\d,]+\.\d{2})(?:\s+(?:(?:RM|MYR|USD|SGD)\s*)?([\d,]+\.\d{2}))?\s*$/i);
@@ -63,7 +63,7 @@ const Assistant=(()=>{
   s.doc.currency=/\b(USD|SGD|EUR|GBP|CNY)\b/i.test(x)?x.match(/\b(USD|SGD|EUR|GBP|CNY)\b/i)[1].toUpperCase():'MYR';
   s.company.name=after(ls,/^(?:from|company|seller|issued by|prepared by)\s*:/i)||after(ls,/^(?:SRWK Diorama Lab|YSYD Sdn Bhd)$/i)||((ls[0]&&!/^(?:project|reference|client|quotation date|quotation details|scope of work|terms)/i.test(ls[0])&&!/invoice|quotation|receipt|proforma/i.test(ls[0]))?ls[0]:'');
   s.company.reg=after(ls,/^(?:registration|reg\.? no\.?)\s*:/i);s.company.address=after(ls,/^(?:company )?address\s*:/i);
-  s.client.name=after(ls,/^(?:bill to|invoice to|received from|client|customer)\s*:?\s*/i)||after(ls,/^quotation for\s*:?\s*/i);s.client.attn=after(ls,/^(?:attention|attn)\s*:?\s*/i);s.client.email=(x.match(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/)||[''])[0];s.client.phone=(x.match(/(?:\+?\d[\d ()-]{7,}\d)/)||[''])[0];s.client.address=after(ls,/^(?:client )?address\s*:?\s*/i);
+  s.client.name=after(ls,/^(?:bill to|invoice to|received from|prepared for|client|customer)\s*:?\s*/i)||after(ls,/^quotation for\s*:?\s*/i);s.client.attn=after(ls,/^(?:attention|attn)\s*:?\s*/i);s.client.email=(x.match(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/)||[''])[0];s.client.phone=(x.match(/(?:\+?\d[\d ()-]{7,}\d)/)||[''])[0];s.client.address=after(ls,/^(?:client )?address\s*:?\s*/i);
   s.doc.ref=after(ls,/^(?:reference|ref(?:erence)?)\s*:?\s*/i)||after(ls,/^project\s*:?\s*/i);
   const nextAfter=(rx)=>{const i=ls.findIndex(l=>rx.test(l));return i>=0&&ls[i+1]&&!/:$/.test(ls[i])?ls[i+1].trim():'';};if(!s.client.name)s.client.name=nextAfter(/^quotation for:?\s*$/i);if(!s.doc.ref)s.doc.ref=nextAfter(/^reference:?\s*$/i);
   s.doc.taxRate=numA((x.match(/(?:tax|sst|gst)[^\d]*(\d+(?:\.\d+)?)\s*%?/i)||[])[1]);const dm=x.match(/discount[^\d]*(\d+(?:\.\d+)?)\s*(%|percent)?/i);if(dm){s.doc.discountVal=numA(dm[1]);s.doc.discountType=dm[2]?'percent':'amount';}
