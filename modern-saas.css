@@ -187,3 +187,33 @@ input:focus,select:focus,textarea:focus{outline:3px solid rgba(91,91,214,.18);bo
 .auth-footnote{display:flex;align-items:center;gap:8px;margin-top:34px;padding-top:16px;border-top:1px solid #edf0f5;color:#8994a8;font-size:10px;line-height:1.4}.auth-mark{width:7px;height:7px;border-radius:50%;background:var(--assistant);flex:none}
 @media (max-width:900px){.auth-gate{grid-template-columns:1fr}.auth-art{min-height:300px;height:38dvh;padding:24px 24px 18px}.auth-art-copy{margin:auto 0 0}.auth-art-copy h2{font-size:38px}.auth-art-copy p{display:none}.diorama-scene{transform:translate(20%,10%) scale(.9);opacity:.66}.auth-art-foot{display:none}.auth-card{margin:28px auto 36px;width:min(450px,calc(100% - 32px))}}
 @media (max-width:520px){.auth-art{min-height:240px;height:31dvh}.auth-art-top{font-size:10px}.auth-art-copy h2{font-size:32px}.auth-card{padding:30px 24px 24px;border-radius:14px}.auth-logo{width:148px;margin-bottom:24px}.auth-card h1{font-size:26px}}
+
+/* Dashboard studio details: presentation only; document controls retain their IDs. */
+#pageDashboard .pg-body{background:#f5f7fa}
+#pageDashboard .cards{gap:12px;margin-bottom:20px}
+#pageDashboard .card{position:relative;border-radius:8px;padding:18px 20px;box-shadow:none;border-color:#e0e5ed;overflow:hidden}
+#pageDashboard .card:before{content:"";display:block;width:26px;height:3px;background:#8da4cd;margin-bottom:15px}
+#pageDashboard .card.warn:before{background:#c23b52}
+#pageDashboard .card .l{font-size:12px;letter-spacing:0;color:#56647a}
+#pageDashboard .card .v{font-size:24px;letter-spacing:0;white-space:normal;overflow-wrap:anywhere}
+#pageDashboard .card .s{color:#65728a}
+#pageDashboard .assistant-launch{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,260px) auto;gap:26px;min-height:178px;padding:22px 26px;background:#eaf0f6;border:1px solid #d7e0eb;border-radius:8px;box-shadow:none;overflow:hidden}
+#pageDashboard .assistant-launch-copy{position:relative;z-index:1;min-width:0}
+#pageDashboard .assistant-launch-copy p{max-width:46ch;line-height:1.55}
+#pageDashboard .assistant-launch .assistant-kicker{color:#2453a6;letter-spacing:0}
+#pageDashboard .assistant-launch h3{color:#1b2b44;font-size:18px;letter-spacing:0;margin:6px 0}
+#pageDashboard .assistant-launch p{color:#53647c;font-size:13px}
+#pageDashboard .assistant-launch .btn.primary{position:relative;z-index:1;white-space:nowrap;background:#2453a6;border-color:#2453a6;box-shadow:none}
+#pageDashboard .assistant-launch .btn.primary:hover{background:#193f83;border-color:#193f83}
+#pageDashboard .assistant-studio-figure{width:100%;margin:0;align-self:center;min-width:0}
+#pageDashboard .assistant-studio-image{display:block;width:100%;height:124px;object-fit:cover;object-position:center 48%;border-radius:5px;border:1px solid #d2dce7}
+#pageDashboard .assistant-studio-figure figcaption{margin-top:5px;font-size:10px;line-height:1.3;color:#53647c}
+.assistant-studio-figure a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.dashboard-list-heading{margin:4px 0 14px}
+.dashboard-list-heading h3{font-size:16px;font-weight:650;color:#27364d;letter-spacing:0}
+#pageDashboard .filters{margin-bottom:12px}
+#pageDashboard .tablewrap{border-radius:8px;box-shadow:none}
+#pageDashboard .dt th{font-size:11px;color:#58667b}
+#pageDashboard .dt tr.click:hover td{background:#f3f7fc}
+@media (max-width:1100px){#pageDashboard .cards{grid-template-columns:repeat(2,minmax(0,1fr))}#pageDashboard .assistant-launch{grid-template-columns:minmax(0,1fr) minmax(190px,220px);gap:18px}#pageDashboard .assistant-launch .btn.primary{grid-column:1/-1;justify-self:start}}
+@media (max-width:700px){#pageDashboard .cards{gap:10px}#pageDashboard .card{padding:15px}#pageDashboard .card .v{font-size:19px}#pageDashboard .assistant-launch{grid-template-columns:1fr;gap:14px;padding:20px}#pageDashboard .assistant-studio-image{height:clamp(140px,42vw,210px)}#pageDashboard .assistant-launch .btn.primary{grid-column:auto;justify-self:stretch;width:100%;white-space:normal}.dashboard-list-heading{margin-top:2px}}
