@@ -85,6 +85,7 @@ function applyTypeUI(){
  $('#billTitle').textContent=T.bill;$('#lblNo').textContent=T.no;$('#lblDue').textContent=T.due||'Due date';
  $('#lblRef').textContent=t==='receipt'?'Invoice no.':'Ref. quotation';
  $('#itemsTitle').textContent=t==='receipt'?'Payment for':'Items';
+ if(t==='receipt')selectNotesTab('remarks');
  ['discount','terms'].forEach(k=>$('[data-t='+k+']').closest('.tg').classList.toggle('hide',t==='receipt'));
  document.title=T.label+' - Invoice Generator';}
 function renderRows(){
@@ -92,8 +93,8 @@ function renderRows(){
  head.className='irow head'+(rec?' single':'');
  head.innerHTML=rec?'<span>Payment for</span><span>Amount paid</span><span></span>':'<span>Description</span><span>Qty</span><span>Price</span><span>Amount</span><span></span>';
  $('#rows').innerHTML=state.items.map((it,i)=>rec
-  ?`<div class='irow single' data-i='${i}'><input data-f='d' value='${esc(it.d)}' placeholder='Payment for'><input data-f='p' type='number' min='0' step='any' value='${it.p||''}' placeholder='0.00'><button class='x' data-del='${i}' title='Remove'>&times;</button></div>`
-  :`<div class='irow' data-i='${i}'><input data-f='d' value='${esc(it.d)}' placeholder='Description'><input data-f='q' type='number' min='0' step='any' value='${it.q}'><input data-f='p' type='number' min='0' step='any' value='${it.p||''}' placeholder='0.00'><span class='amt'>${fmt(rowAmt(it))}</span><button class='x' data-del='${i}' title='Remove'>&times;</button></div>`).join('');}
+  ?`<div class='irow single' data-i='${i}'><textarea data-f='d' rows='2' aria-label='Payment description' placeholder='Payment for'>${esc(it.d)}</textarea><input data-f='p' aria-label='Amount paid' type='number' min='0' step='any' value='${it.p||''}' placeholder='0.00'><button class='x' data-del='${i}' aria-label='Remove item ${i+1}' title='Remove'>&times;</button></div>`
+  :`<div class='irow' data-i='${i}'><textarea data-f='d' rows='2' aria-label='Item ${i+1} description' placeholder='Description'>${esc(it.d)}</textarea><input data-f='q' aria-label='Item ${i+1} quantity' type='number' min='0' step='any' value='${it.q}'><input data-f='p' aria-label='Item ${i+1} unit price' type='number' min='0' step='any' value='${it.p||''}' placeholder='0.00'><span class='amt'>${fmt(rowAmt(it))}</span><button class='x' data-del='${i}' aria-label='Remove item ${i+1}' title='Remove'>&times;</button></div>`).join('');}
 function renderChips(){}
 function renderSum(){
  const c=calc(state),T=TYPES[state.type];
@@ -147,15 +148,22 @@ function setType(t){
  state.type=t;state.doc.no=state.nos[t]||nextNo(t);
  applyTypeUI();renderRows();syncForm();changed();}
 
+function selectNotesTab(tab){
+ const terms=tab==='terms'&&state.type!=='receipt';
+ $('#remarksPanel').hidden=terms;$('#termsPanel').hidden=!terms;
+ $$('#notesTabs [role=tab]').forEach(b=>{const on=b.dataset.notesTab===(terms?'terms':'remarks');b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;});}
 function bind(){
  $('#docTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setType(b.dataset.type);});
- $('#mobTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;document.body.dataset.view=b.dataset.view;$$('#mobTabs button').forEach(x=>x.classList.toggle('on',x===b));fitPaper();});
+ $('#mobTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;document.body.dataset.view=b.dataset.view;$$('#mobTabs button').forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b));});fitPaper();});
+ $('#notesTabs').addEventListener('click',e=>{const b=e.target.closest('[role=tab]');if(b)selectNotesTab(b.dataset.notesTab);});
+ $('#notesTabs').addEventListener('keydown',e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;const b=e.target.closest('[role=tab]');if(!b||state.type==='receipt')return;e.preventDefault();const next=b.dataset.notesTab==='remarks'?'terms':'remarks';selectNotesTab(next);$('#'+next+'Tab').focus();});
+ $('#previewZoom').addEventListener('change',fitPaper);
  $('#form').addEventListener('input',e=>{const el=e.target;if(!el.dataset.k)return;let v=el.value;if('num' in el.dataset)v=num(v);setPath(state,el.dataset.k,v);changed();});
  $('#form').addEventListener('change',e=>{const el=e.target;if(el.dataset.t){state.toggles[el.dataset.t]=el.checked;changed();}});
  $('#swatches').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;state.accent=b.dataset.accent;syncForm();changed();});
  $('#rows').addEventListener('input',e=>{const el=e.target,row=el.closest('.irow');if(!row||!el.dataset.f)return;const it=state.items[+row.dataset.i];if(!it)return;it[el.dataset.f]=el.dataset.f==='d'?el.value:num(el.value);if(state.type==='receipt')it.q=1;const a=row.querySelector('.amt');if(a)a.textContent=fmt(rowAmt(it));changed();});
  $('#rows').addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;state.items.splice(+b.dataset.del,1);if(!state.items.length)state.items.push({d:'',q:1,p:0});renderRows();changed();});
- $('#addItem').addEventListener('click',()=>{state.items.push({d:'',q:1,p:0});renderRows();changed();const r=$$('#rows .irow'),i=r[r.length-1].querySelector('input');if(i)i.focus();});
+ $('#addItem').addEventListener('click',()=>{state.items.push({d:'',q:1,p:0});renderRows();changed();const r=$$('#rows .irow'),i=r[r.length-1].querySelector('[data-f=d]');if(i)i.focus();});
  $('#btnLogo').addEventListener('click',()=>$('#logoFile').click());
  $('#logoFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.logo=String(r.result);syncForm();changed();};r.readAsDataURL(f);e.target.value='';});
  $('#btnLogoReset').addEventListener('click',()=>{state.logo='';syncForm();changed();});
@@ -279,7 +287,8 @@ function fitPaper(){
  const col=$('#previewCol'),holder=$('#holder'),sc=$('#scaler');
  if(!col||!holder||!sc||!col.clientWidth)return;
  const pad=(parseFloat(getComputedStyle($('#stage')).paddingLeft)||28)*2;
- const s=Math.max(0.3,Math.min(1,(col.clientWidth-pad)/794));
+ const zoom=$('#previewZoom').value;
+ const s=zoom==='auto'?Math.max(0.3,Math.min(1,(col.clientWidth-pad)/794)):Number(zoom);
  const n=Math.max(1,$$('#paper .page').length);
  sc.style.transform='scale('+s+')';
  holder.style.width=(794*s)+'px';

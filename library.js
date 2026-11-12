@@ -54,7 +54,7 @@ const Drawer=(()=>{
   $('#drawerCancel').addEventListener('click',close);
   $('#drawerBack').addEventListener('click',close);
   $('#drawerSave').addEventListener('click',()=>{if(save&&save(vals())!==false)close();});
-  $('#drawerDel').addEventListener('click',()=>{if(del&&confirm('Delete this entry? This cannot be undone.')){del();close();}});
+  $('#drawerDel').addEventListener('click',()=>{if(del&&confirm('Delete this entry? This cannot be undone.')&&del()!==false)close();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#drawer').classList.contains('hide'))close();});}
  return{open:open,close:close,init:init};
 })();
@@ -70,7 +70,7 @@ function bindEditorPickers(){
   const it={d:i.d,q:1,p:num(i.p)};
   if(blank)state.items=[it];else state.items.push(it);
   $('#itemPick').value='';renderRows();changed();},'No saved items yet');
- Pick.bind($('#rows'),`input[data-f='d']`,(q,el)=>{
+ Pick.bind($('#rows'),`textarea[data-f='d']`,(q,el)=>{
   const row=el.closest('.irow'),idx=row?+row.dataset.i:-1;
   return pickMatch(Store.lib('items'),q,['d']).map(i=>({label:i.d,sub:money(i.p),rec:i,idx:idx}));},x=>{
   const it=state.items[x.idx];if(!it)return;
@@ -95,6 +95,11 @@ function bindEditorPickers(){
 // ---------- Library page ----------
 let libTab='clients';
 const LIB_ONE={clients:'client',items:'item',terms:'terms'};
+const LIB_EMPTY={
+ clients:['Meet your future client library.','Save names, contact details and addresses for quicker document creation.','Add your first client'],
+ items:['Build your item library.','Save products and services for quicker document creation.','Add your first item'],
+ terms:['Keep your wording close at hand.','Save reusable terms for your documents.','Add your first terms']
+};
 const LIB_HEAD={clients:['Name','Contact','Phone','Email'],items:['Description','Unit price'],terms:['Name','Applies to','Preview']};
 const LIB_FIND={clients:['name','attn','phone','email'],items:['d'],terms:['name','text']};
 function libRows(kind,q){q=String(q||'').trim().toLowerCase();return Store.lib(kind).filter(x=>!q||LIB_FIND[kind].some(k=>String(x[k]||'').toLowerCase().indexOf(q)>=0));}
@@ -104,13 +109,23 @@ function libCells(kind,x){
  const ap=x.types&&x.types.length?x.types.map(t=>TYPES[t]?TYPES[t].label:t).join(', '):'All';
  return[x.name,ap,String(x.text||'').split(NL).slice(0,2).join(' / ')];}
 function renderLibrary(){
- const kind=libTab,rows=libRows(kind,$('#libSearch').value),has=Store.lib(kind).length;
- $$('#libTabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===kind));
+ const kind=libTab,search=$('#libSearch');
+ $$('#libTabs button').forEach(b=>{const on=b.dataset.v===kind;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));});
  $('#libAdd').textContent='+ Add '+LIB_ONE[kind];
- if(!rows.length){$('#libList').innerHTML=`<div class='empty'>${has?'No matches.':'Nothing saved yet.'}<br><button class='btn primary' data-add='1'>+ Add ${LIB_ONE[kind]}</button></div>`;return;}
+ $('#libTitle').textContent=LIB_LABEL[kind];
+ search.placeholder='Search '+kind;search.setAttribute('aria-label','Search '+kind);
+ let all;
+ try{const raw=localStorage.getItem(Store.K[kind]);all=raw===null?[]:JSON.parse(raw);if(!Array.isArray(all))throw new Error('Invalid library data');}
+ catch(e){$('#libAdd').disabled=true;$('#libList').innerHTML="<div class='library-message' role='alert'><h4>Unable to load this library</h4><p>Check browser storage and try again.</p></div>";return;}
+ $('#libAdd').disabled=false;
+ const rows=libRows(kind,search.value);
+ if(!rows.length){
+  if(all.length){$('#libList').innerHTML="<div class='library-message'><h4>No matching results</h4><button class='btn' type='button' data-clear-search>Clear search</button></div>";return;}
+  const empty=LIB_EMPTY[kind];
+  $('#libList').innerHTML=`<div class='library-empty'><img src='assets/library-collection.png' alt=''><h4>${empty[0]}</h4><p>${empty[1]}</p><button class='btn primary' type='button' data-add='1'>${empty[2]}</button></div>`;return;}
  const th=LIB_HEAD[kind].map((h,i)=>`<th${kind==='items'&&i===1?` class='r'`:''}>${h}</th>`).join('');
- const tr=rows.map(x=>`<tr class='click' data-id='${esc(x.id)}'>${libCells(kind,x).map((c,i)=>`<td class='${(kind==='terms'&&i===2)||(kind==='items'&&i===0)?'wrap':''}${kind==='items'&&i===1?' r':''}'>${esc(c)}</td>`).join('')}</tr>`).join('');
- $('#libList').innerHTML=`<table class='dt'><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table>`;}
+ const tr=rows.map(x=>`<tr class='click' data-id='${esc(x.id)}'>${libCells(kind,x).map((c,i)=>`<td class='${(kind==='terms'&&i===2)||(kind==='items'&&i===0)?'wrap':''}${kind==='items'&&i===1?' r':''}'>${esc(c)}</td>`).join('')}<td class='r'><button type='button' class='library-edit' aria-label='Edit ${esc(LIB_ONE[kind])}: ${esc(kind==='items'?x.d:x.name)}'>Edit</button></td></tr>`).join('');
+ $('#libList').innerHTML=`<div class='library-table'><table class='dt'><thead><tr>${th}<th><span class='sr-only'>Actions</span></th></tr></thead><tbody>${tr}</tbody></table></div>`;}
 function openLibEntry(kind,rec){
  rec=rec||{};
  const L=(l,f,v,t)=>`<label class='f'><span>${l}</span><input data-f='${f}'${t?` type='${t}' step='any' min='0'`:''} value='${esc(v)}'></label>`;
@@ -123,7 +138,7 @@ function openLibEntry(kind,rec){
   html=L('Name','name',rec.name)+A('Terms (one per line)','text',rec.text,8)+`<div class='f'><span>Applies to (none ticked = all)</span><div class='chk'>${ck}</div></div>`;}
  Drawer.open({
   title:(rec.id?'Edit ':'Add ')+LIB_ONE[kind],html:html,
-  onDelete:rec.id?()=>{Store.libRemove(kind,rec.id);renderLibrary();}:null,
+  onDelete:rec.id?()=>{if(!Store.libRemove(kind,rec.id)){window.alert('Could not delete this entry. Check browser storage and try again.');return false;}renderLibrary();}:null,
   onSave:v=>{
    const key=kind==='items'?'d':'name';
    const bad=!String(v[key]||'').trim()?key:(kind==='terms'&&!String(v.text||'').trim()?'text':'');
@@ -133,13 +148,15 @@ function openLibEntry(kind,rec){
    if(kind==='items')o.p=num(v.p);
    if(kind==='terms')o.types=$$('#drawerBody [data-ty]:checked').map(x=>x.dataset.ty);
    if(rec.id)o.id=rec.id;
-   Store.libSave(kind,o);renderLibrary();}});}
+   if(!Store.libSave(kind,o)){window.alert('Could not save this entry. Check browser storage and try again.');return false;}
+   renderLibrary();}});}
 function bindLibrary(){
  $('#libTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;libTab=b.dataset.v;$('#libSearch').value='';renderLibrary();});
  $('#libSearch').addEventListener('input',renderLibrary);
  $('#libAdd').addEventListener('click',()=>openLibEntry(libTab,null));
  $('#libList').addEventListener('click',e=>{
   if(e.target.closest('[data-add]')){openLibEntry(libTab,null);return;}
+  if(e.target.closest('[data-clear-search]')){$('#libSearch').value='';renderLibrary();$('#libSearch').focus();return;}
   const tr=e.target.closest('tr[data-id]');if(!tr)return;
   const rec=Store.lib(libTab).find(x=>x.id===tr.dataset.id);if(rec)openLibEntry(libTab,rec);});}
 // ---------- Page routing, shared by Dashboard, Create and Library ----------

@@ -27,8 +27,10 @@ function companySetStatus(message,type){
 function companyRenderLogo(){
   const img=$('#companyLogoPreview');
   if(!img)return;
-  if(companyDraft&&companyDraft.logo)img.src=companyDraft.logo;
+  const hasLogo=!!(companyDraft&&companyDraft.logo);
+  if(hasLogo)img.src=companyDraft.logo;
   else img.removeAttribute('src');
+  $('#companyLogoEmpty').hidden=hasLogo;
 }
 
 function companyPopulate(){
@@ -59,7 +61,8 @@ function companyReadForm(){
 
 function companySave(){
   const profile=companyReadForm();
-  if(!profile.company.name){companySetStatus('Enter a company name before saving.','error');$('#companyName').focus();return;}
+  if(!profile.company.name){$('#companyName').setAttribute('aria-invalid','true');companySetStatus('Enter a company name before saving.','error');$('#companyName').focus();return;}
+  $('#companyName').removeAttribute('aria-invalid');
   if(!write(KEYS.profile,profile)){companySetStatus('Could not save: browser storage is full or unavailable.','error');return;}
   companyDraft=companySavedProfile();
   companyPopulate();
@@ -69,7 +72,8 @@ function companySave(){
 function companyReset(){
   companyDraft=companySavedProfile();
   companyPopulate();
-  companySetStatus('Form reset to the saved company profile.');
+  $('#companyName').removeAttribute('aria-invalid');
+  companySetStatus('Unsaved changes discarded. The saved company profile is unchanged.');
 }
 
 function companyUpload(){

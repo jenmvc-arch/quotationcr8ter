@@ -7,57 +7,59 @@
 <link rel='stylesheet' href='styles.css'>
 <link rel='stylesheet' href='pages.css'>
 <link rel='stylesheet' href='assistant-items.css'>
-<link rel='stylesheet' href='modern-saas.css?v=dashboard-studio-1'>
+<link rel='stylesheet' href='modern-saas.css?v=company-studio-1'>
 <link rel="icon" href="assets/logo.png"></head>
 <body data-view='form' data-page='dashboard'>
 <div class='auth-gate' id='authGate'>
-<section class='auth-art' aria-label='Diorama studio preview'>
-<div class='auth-art-top'><span>SRWK Diorama Lab</span><span>Scale 1:24</span></div>
-<div class='auth-art-copy'><h2>Small worlds.<br><em>Carefully made.</em></h2><p>Your quotation workspace for miniature builds, museum replicas, and exhibition craft.</p></div>
-<div class='diorama-scene' aria-hidden='true'>
-<div class='scene-back'></div><div class='scene-shelf shelf-one'></div><div class='scene-shelf shelf-two'></div>
-<div class='scene-block block-one'></div><div class='scene-block block-two'></div><div class='scene-block block-three'></div>
-<div class='scene-tree tree-one'><i></i><b></b><span></span></div><div class='scene-tree tree-two'><i></i><b></b><span></span></div>
-<div class='scene-figure figure-one'><i></i><b></b></div><div class='scene-ruler'><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
-</div>
-<div class='auth-art-foot'><span>Sketch</span><span>Build</span><span>Present</span></div>
+<header class='auth-header'>
+<img class='auth-logo' src='assets/logo.png' alt='SRWK Diorama Lab'>
+<span>Sketch &middot; Build &middot; Present</span>
+</header>
+<section class='auth-art' aria-labelledby='authArtTitle'>
+<div class='auth-art-copy'><span class='auth-art-dash' aria-hidden='true'></span><h2 id='authArtTitle'>A little world of<br><span>possibilities.</span></h2></div>
+<div class='auth-artwork'><img src='assets/miniature-workbench.png' alt=''></div>
+<p class='auth-art-caption'>Quotations, invoices and exhibition documentation.</p>
 </section>
 <div class='auth-card'>
-<img class='auth-logo' src='assets/logo.png' alt='SRWK Diorama Lab'>
-<div class='assistant-kicker'>YSYD workspace</div><h1>Quotation Create</h1><p class='auth-intro'>Bring your next miniature project into focus.</p>
-<section id='authSetupView'><label class='f'><span>Admin password</span><input id='authSetupPassword' type='password' autocomplete='new-password'></label><button class='btn primary' id='authSetup'>Create ysyd admin</button><small class='auth-note'>Create the workspace administrator to get started.</small></section>
-<section id='authLoginView' class='hide'><label class='f'><span>Username</span><input id='authUsername' value='ysyd admin' autocomplete='username'></label><label class='f'><span>Password</span><input id='authPassword' type='password' autocomplete='current-password'></label><button class='btn primary' id='authLogin'>Sign in</button><small class='auth-note'>Use your workspace account to continue.</small></section>
-<div class='auth-footnote'><span class='auth-mark'></span>For quotation, invoice, and exhibition documentation</div>
+<div class='auth-eyebrow'>YSYD workspace</div><h1 id='authHeading'>Welcome back.</h1><p class='auth-intro' id='authIntro'>Sign in to your creative workspace.</p>
+<form id='authSetupView' novalidate><label class='f'><span>Admin password</span><input id='authSetupPassword' name='new-password' type='password' autocomplete='new-password' placeholder='Create an admin password' aria-describedby='authError'></label><button class='btn primary' id='authSetup' type='submit'>Create ysyd admin</button><small class='auth-note'>Create the workspace administrator to get started.</small></form>
+<form id='authLoginView' class='hide' novalidate><label class='f'><span>Username</span><input id='authUsername' name='username' value='ysyd admin' autocomplete='username' placeholder='Enter your username' aria-describedby='authError'></label><label class='f' for='authPassword'><span>Password</span></label><div class='auth-password'><input id='authPassword' name='password' type='password' autocomplete='current-password' placeholder='Enter your password' aria-describedby='authError'><button id='authPasswordToggle' class='auth-password-toggle' type='button' aria-controls='authPassword' aria-label='Show password' aria-pressed='false'>Show</button></div><button class='btn primary' id='authLogin' type='submit'>Sign in</button><small class='auth-note'>Use your workspace account to continue.</small><button class='auth-reset' id='authReset' type='button'>Reset login on this browser</button><small class='auth-note auth-reset-note'>Quotations and company details will remain.</small></form>
+<p class='auth-error hide' id='authError' role='alert'></p>
 </div>
 </div>
 <aside class='side' id='side'>
-<img class='side-logo' src='assets/logo.png' alt='SRWK Diorama Lab'>
+<img class='side-logo' src='assets/logo-sidebar.png' alt='SRWK Diorama Lab'>
 <nav class='sidenav' id='sideNav'>
-<a href='#/dashboard' data-page='dashboard'><svg viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='7' height='9'/><rect x='14' y='3' width='7' height='5'/><rect x='14' y='12' width='7' height='9'/><rect x='3' y='16' width='7' height='5'/></svg><span>Dashboard</span></a>
-<a href='#/create' data-page='create'><svg viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z'/><path d='M14 3v5h5M12 11v6M9 14h6'/></svg><span>Create</span></a>
-<a href='#/library' data-page='library'><svg viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z'/><path d='M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z'/></svg><span>Library</span></a>
-<a href='#/company' data-page='company'><svg viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 21h18M5 21V6l7-3 7 3v15M9 21v-7h6v7M8 8h.01M12 8h.01M16 8h.01'/></svg><span>Company Details</span></a>
+<a href='#/dashboard' data-page='dashboard'><svg id='iconDashboard' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='7' height='9'/><rect x='14' y='3' width='7' height='5'/><rect x='14' y='12' width='7' height='9'/><rect x='3' y='16' width='7' height='5'/></svg><span>Dashboard</span></a>
+<a href='#/create' data-page='create'><svg id='iconCreate' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z'/><path d='M14 3v5h5M12 11v6M9 14h6'/></svg><span>Create</span></a>
+<a href='#/library' data-page='library'><svg id='iconLibrary' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z'/><path d='M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z'/></svg><span>Library</span></a>
+<a href='#/company' data-page='company'><svg id='iconCompany' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 21h18M5 21V6l7-3 7 3v15M9 21v-7h6v7M8 8h.01M12 8h.01M16 8h.01'/></svg><span>Company Details</span></a>
 </nav>
 </aside>
+<button class='dashboard-nav-backdrop' id='dashboardNavBackdrop' type='button' aria-label='Close navigation' tabindex='-1'></button>
 <div class='main' id='main'>
 <section class='pg' id='pageCreate'>
 <header class='top'>
+<div class='create-heading'><div class='create-title'><h2>Create a document</h2><span>The Maker's Desk</span></div>
 <nav class='seg' id='docTabs'>
 <button data-type='quotation'>Quotation</button>
 <button data-type='proforma'>Proforma Invoice</button>
 <button data-type='invoice'>Invoice</button>
 <button data-type='receipt'>Receipt</button>
 </nav>
-<div class='sp'></div>
+</div>
+<img class='create-art' src='assets/miniature-buildings.png' alt=''>
+<div class='create-actions'>
 <span class='status' id='saveStatus'>Draft not saved yet</span>
 <button class='btn' id='btnSave'>Save</button>
 <button class='btn primary' id='btnPdf'>Download PDF</button>
+</div>
 </header>
-<nav class='mobtabs' id='mobTabs'><button data-view='form'>Fill in</button><button data-view='preview'>Preview</button></nav>
+<nav class='mobtabs' id='mobTabs' aria-label='Editor view'><button data-view='form' aria-pressed='true'>Edit</button><button data-view='preview' aria-pressed='false'>Preview</button></nav>
 <main class='layout'>
 <aside class='formcol'>
 <div class='formscroll' id='form'>
-<section class='sec'><h3>From</h3>
+<section class='sec'><h3>Your studio</h3>
 <div class='grid'>
 <label class='f'><span>Company name</span><input data-k='company.name'></label>
 <label class='f'><span>Registration no.</span><input data-k='company.reg'></label>
@@ -67,14 +69,14 @@
 </section>
 <section class='sec'><h3 id='billTitle'>Bill to</h3>
 <div class='grid'>
-<div class='f span2'><span>Client name</span><div class='row2'><div class='combo' id='clientCombo'><input data-k='client.name' autocomplete='off' placeholder='Type or pick from library'></div><button class='btn mini' id='saveClient'>Save to library</button></div></div>
+<div class='f span2'><label for='clientName'>Client name</label><div class='row2'><div class='combo' id='clientCombo'><input id='clientName' data-k='client.name' autocomplete='off' placeholder='Type or pick from library'></div><button class='btn mini' id='saveClient'>Save to library</button></div></div>
 <label class='f'><span>Attention</span><input data-k='client.attn'></label>
 <label class='f'><span>Phone</span><input data-k='client.phone'></label>
 <label class='f span2'><span>Email</span><input data-k='client.email'></label>
 <label class='f span2'><span>Address</span><textarea data-k='client.address'></textarea></label>
 </div>
 </section>
-<section class='sec'><h3>Details</h3>
+<section class='sec'><h3>Document details</h3>
 <div class='grid'>
 <label class='f'><span id='lblNo'>Invoice no.</span><input data-k='doc.no'></label>
 <label class='f'><span>Date</span><input type='date' data-k='doc.date'></label>
@@ -87,7 +89,7 @@
 </div>
 </section>
 <section class='sec'><h3 id='itemsTitle'>Items</h3>
-<div class='pickrow'><div class='combo' id='itemCombo'><input id='itemPick' autocomplete='off' placeholder='Add from library'></div></div>
+<div class='pickrow'><div class='combo' id='itemCombo'><input id='itemPick' aria-label='Add item from library' autocomplete='off' placeholder='Add from library'></div></div>
 <div class='irow head' id='itemsHead'></div>
 <div id='rows'></div>
 <button class='link' id='addItem'>+ Add item</button>
@@ -102,9 +104,9 @@
 </div>
 </section>
 <section class='sec'><h3>Notes and terms</h3>
-<div class='grid'>
-<label class='f span2'><span>Remarks</span><textarea data-k='notes'></textarea></label>
-<div class='f span2' data-only='quotation proforma invoice'><span>Terms</span><div class='pickrow'><div class='combo' id='termCombo'><input id='termPick' autocomplete='off' placeholder='Insert from library'></div><button class='btn mini' id='saveTerm'>Save as template</button></div><textarea data-k='termsText'></textarea></div>
+<div class='notes-tabs' id='notesTabs' role='tablist' aria-label='Notes and terms'><button type='button' id='remarksTab' role='tab' aria-selected='true' aria-controls='remarksPanel' data-notes-tab='remarks'>Remarks</button><button type='button' id='termsTab' role='tab' aria-selected='false' aria-controls='termsPanel' data-notes-tab='terms' data-only='quotation proforma invoice' tabindex='-1'>Terms</button></div>
+<div id='remarksPanel' role='tabpanel' aria-labelledby='remarksTab'><label class='f'><span class='sr-only'>Remarks</span><textarea data-k='notes'></textarea></label></div>
+<div id='termsPanel' role='tabpanel' aria-labelledby='termsTab' hidden><div class='f'><div class='pickrow'><div class='combo' id='termCombo'><input id='termPick' aria-label='Insert terms from library' autocomplete='off' placeholder='Insert from library'></div><button class='btn mini' id='saveTerm'>Save as template</button></div><label class='sr-only' for='termsText'>Terms</label><textarea id='termsText' data-k='termsText'></textarea></div>
 </div>
 </section>
 <section class='sec'><h3>Payment details</h3>
@@ -131,51 +133,64 @@
 </div>
 <div class='sumbar' id='sumbar'></div>
 </aside>
-<section class='previewcol' id='previewCol'><div class='stage' id='stage'><div class='holder' id='holder'><div class='scaler' id='scaler'><div id='paper'></div></div></div></div></section>
+<section class='previewcol' id='previewCol' aria-label='Live document preview'><div class='preview-toolbar'><strong>Live preview</strong><label for='previewZoom'>Zoom</label><select id='previewZoom'><option value='auto'>Fit width</option><option value='0.5'>50%</option><option value='0.75'>75%</option><option value='1'>100%</option><option value='1.25'>125%</option><option value='1.5'>150%</option></select></div><div class='preview-scroll' id='previewScroll'><div class='stage' id='stage'><div class='holder' id='holder'><div class='scaler' id='scaler'><div id='paper'></div></div></div></div></div></section>
 </main>
 </section>
 <section class='pg' id='pageDashboard'>
-<div class='workspace-tools'><span id='authUserLabel' class='auth-user'></span><button class='btn hide' id='btnWorkspace'>Workspace</button><button class='btn' id='authLogout'>Sign out</button></div>
-<div class='pg-head'><h2>Dashboard</h2><div class='sp'></div><div class='newwrap'><button class='btn primary' id='btnNew'>+ New</button><div class='menu hide' id='newMenu'><button data-new='quotation'>Quotation</button><button data-new='proforma'>Proforma Invoice</button><button data-new='invoice'>Invoice</button><button data-new='receipt'>Receipt</button></div></div></div>
+<div class='dashboard-header'>
+<button class='dashboard-nav-toggle' id='dashboardNavToggle' type='button' aria-label='Open navigation' aria-controls='side' aria-expanded='false'><span></span><span></span><span></span></button>
+<div class='dashboard-title'><h2>The Creative Workbench</h2><p>Create, manage and keep your studio documents organised.</p></div>
+<div class='dashboard-header-actions'><div class='workspace-tools'><span id='authUserLabel' class='auth-user'></span><button class='btn hide' id='btnWorkspace'>Workspace</button><button class='btn' id='authLogout'>Sign out</button></div>
+<div class='newwrap'><button class='btn primary' id='btnNew' aria-expanded='false' aria-controls='newMenu'>+ New document</button><div class='menu hide' id='newMenu'><button data-new='quotation'>Quotation</button><button data-new='proforma'>Proforma Invoice</button><button data-new='invoice'>Invoice</button><button data-new='receipt'>Receipt</button></div></div></div>
+</div>
 <div class='pg-body'>
-<div class='cards' id='cards'></div>
-<section class='assistant-launch' id='assistantLaunch'>
-<div class='assistant-launch-copy'><div class='assistant-kicker'>Smart assistant</div><h3>Paste a quote, invoice, or receipt</h3><p>We’ll sort the details into editable fields for you to review.</p></div>
-<figure class='assistant-studio-figure'><img class='assistant-studio-image' src='assets/diorama-studio.jpg' alt='Miniature model of the Altes Rathaus in Bamberg, displayed as part of a railway diorama'><figcaption><a href='https://commons.wikimedia.org/wiki/File:Bamberg_Altes_Rathaus_Diorama.jpg' target='_blank' rel='noopener noreferrer'>Photo: Fred Cherrygarden, CC BY-SA 4.0</a></figcaption></figure>
-<button class='btn primary' id='btnAssistant'>Paste with Smart Assistant</button>
+<section class='workbench-hero' aria-labelledby='workbenchHeroTitle'>
+<div class='workbench-hero-copy'><span class='workbench-dash' aria-hidden='true'></span><h3 id='workbenchHeroTitle'>A little world of <span>possibilities.</span></h3><p>From quotes to final invoices, keep your diorama projects organised, crafted, and ready to build.</p></div>
+<div class='workbench-art'><img src='assets/miniature-workbench.png' alt=''></div>
 </section>
-<div class='dashboard-list-heading'><h3>Documents</h3></div>
+<div class='cards' id='cards'></div>
+<section class='dashboard-documents' aria-labelledby='dashboardDocumentsTitle'>
+<div class='dashboard-list-heading'><h3 id='dashboardDocumentsTitle'>Documents</h3><button class='btn assistant-button' id='btnAssistant'>Paste with Smart Assistant</button></div>
 <div class='filters'>
-<div class='seg' id='fType'><button data-v='' class='on'>All</button><button data-v='quotation'>Quotation</button><button data-v='proforma'>Proforma</button><button data-v='invoice'>Invoice</button><button data-v='receipt'>Receipt</button></div>
-<div class='seg' id='fStatus'><button data-v='' class='on'>Any status</button><button data-v='Draft'>Draft</button><button data-v='Sent'>Sent</button><button data-v='Overdue'>Overdue</button><button data-v='Paid'>Paid</button></div>
-<input class='search' id='dSearch' placeholder='Search number or client'>
+<div class='seg' id='fType' role='group' aria-label='Document type'><button data-v='' class='on' aria-pressed='true'>All</button><button data-v='quotation' aria-pressed='false'>Quotation</button><button data-v='proforma' aria-pressed='false'>Proforma</button><button data-v='invoice' aria-pressed='false'>Invoice</button><button data-v='receipt' aria-pressed='false'>Receipt</button></div>
+<div class='seg' id='fStatus' role='group' aria-label='Document status'><button data-v='' class='on' aria-pressed='true'>Any status</button><button data-v='Draft' aria-pressed='false'>Draft</button><button data-v='Sent' aria-pressed='false'>Sent</button><button data-v='Overdue' aria-pressed='false'>Overdue</button><button data-v='Paid' aria-pressed='false'>Paid</button></div>
+<input class='search' id='dSearch' aria-label='Search number or client' placeholder='Search number or client'>
 </div>
 <div class='tablewrap' id='docList'></div>
+</section>
 </div>
 </section>
 <section class='pg' id='pageLibrary'>
-<div class='pg-head'><h2>Library</h2><div class='sp'></div><button class='btn primary' id='libAdd'>+ Add</button></div>
-<div class='pg-body'>
-<div class='filters'><div class='seg' id='libTabs'><button data-v='clients' class='on'>Clients</button><button data-v='items'>Items</button><button data-v='terms'>Terms</button></div><input class='search' id='libSearch' placeholder='Search'></div>
-<div class='tablewrap' id='libList'></div>
-</div>
+<header class='library-header'><div><h2>Library</h2><p>Your trusted details, neatly collected.</p></div><img src='assets/miniature-buildings.png' alt='' class='library-header-art'><button class='btn primary' id='libAdd'>+ Add client</button></header>
+<div class='pg-body library-body'><div class='library-surface'>
+<nav id='libTabs' class='library-tabs' aria-label='Library categories'>
+<button type='button' data-v='clients' class='on' aria-pressed='true'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' aria-hidden='true'><circle cx='12' cy='8' r='3.5'/><path d='M5 20v-1a7 7 0 0 1 14 0v1'/></svg><span><strong>Clients</strong><small>People you work with</small></span></button>
+<button type='button' data-v='items' aria-pressed='false'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' aria-hidden='true'><path d='M4 7l8-4 8 4v10l-8 4-8-4zM4 7l8 4 8-4M12 11v10'/></svg><span><strong>Items</strong><small>Products &amp; services</small></span></button>
+<button type='button' data-v='terms' aria-pressed='false'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' aria-hidden='true'><rect x='5' y='3' width='14' height='18' rx='2'/><path d='M8 8h8M8 12h8M8 16h5'/></svg><span><strong>Terms</strong><small>Reusable wording</small></span></button>
+</nav>
+<section class='library-content' aria-labelledby='libTitle'><div class='library-content-header'><h3 id='libTitle'>Clients</h3><input class='search' id='libSearch' type='search' aria-label='Search clients' placeholder='Search clients'></div><div class='library-list' id='libList' aria-live='polite'></div></section>
+</div></div>
 </section>
 <section class='pg' id='pageCompany'>
-<div class='pg-head'><h2>Company Details</h2><div class='sp'></div><button class='btn' id='companyReset'>Reset</button><button class='btn primary' id='companySave'>Save company details</button></div>
-<div class='pg-body company-body'><div class='company-card'>
-<div class='assistant-kicker'>Main business profile</div>
-<p class='company-help'>These details are reused automatically for new quotations, proforma invoices, invoices, receipts, and PDF previews.</p>
+<header class='company-header'><div><h2>Company details</h2><p>Your studio, beautifully represented.</p></div><div class='company-actions'><button class='btn' id='companyReset' title='Restore the last saved profile'>Reset</button><button class='btn primary' id='companySave'>Save company details</button></div></header>
+<div class='pg-body company-body'><div class='company-layout'><div class='company-card'>
+<p class='company-intro'>These details are reused automatically on new documents.</p>
+<section class='company-section' aria-labelledby='companyBusinessTitle'><h3 id='companyBusinessTitle'><span class='company-number'>01</span> Business profile</h3>
 <div class='grid'>
-<label class='f'><span>Company name</span><input id='companyName'></label>
-<label class='f'><span>Registration no.</span><input id='companyReg'></label>
-<label class='f span2'><span>Business address</span><textarea id='companyAddress' rows='4'></textarea></label>
-<label class='f'><span>Bank</span><input id='companyBank'></label>
-<label class='f'><span>Account name</span><input id='companyAccountName'></label>
-<label class='f span2'><span>Account no.</span><input id='companyAccountNo'></label>
-</div>
-<div class='company-logo-row'><img id='companyLogoPreview' alt='Company logo'><div><strong>Company logo</strong><p class='company-help'>Use the same logo on every new document.</p><button class='btn' id='companyLogoUpload'>Upload logo</button><button class='btn' id='companyLogoReset'>Remove logo</button><input type='file' id='companyLogoFile' accept='image/*' hidden></div></div>
-<div class='company-status' id='companyStatus' aria-live='polite'></div>
-</div></div>
+<label class='f'><span>Company name</span><input id='companyName' aria-describedby='companyStatus' placeholder='Enter company name'></label>
+<label class='f'><span>Registration no.</span><input id='companyReg' placeholder='Enter registration number'></label>
+<label class='f span2'><span>Business address</span><textarea id='companyAddress' rows='3' placeholder='Enter business address'></textarea></label>
+</div></section>
+<section class='company-section' aria-labelledby='companyPaymentTitle'><h3 id='companyPaymentTitle'><span class='company-number coral'>02</span> Payment details</h3>
+<div class='grid'>
+<label class='f'><span>Bank</span><input id='companyBank' placeholder='Enter bank name'></label>
+<label class='f'><span>Account name</span><input id='companyAccountName' placeholder='Enter account name'></label>
+<label class='f span2'><span>Account no.</span><input id='companyAccountNo' type='text' inputmode='text' placeholder='Enter account number'></label>
+</div></section>
+<section class='company-section' aria-labelledby='companyLogoTitle'><h3 id='companyLogoTitle'><span class='company-number'>03</span> Company logo</h3>
+<div class='company-logo-row'><div class='company-logo-frame'><img id='companyLogoPreview' alt='Company logo'><span id='companyLogoEmpty'>No logo selected</span></div><div><p class='company-help'>Use the same logo on every new document.</p><div class='company-logo-actions'><button class='btn' id='companyLogoUpload'>Upload logo</button><button class='btn' id='companyLogoReset'>Remove logo</button></div><input type='file' id='companyLogoFile' accept='image/*' hidden></div></div></section>
+<div class='company-status' id='companyStatus' role='status' aria-live='polite'></div>
+</div><img class='company-art' src='assets/company-shophouse.png' alt=''></div></div>
 </section>
 </div>
 <div class='drawer-back hide' id='drawerBack'></div>

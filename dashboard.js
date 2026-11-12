@@ -58,8 +58,8 @@ function renderCards(all){
  const o=cardAmt(b,'outstanding'),v=cardAmt(b,'overdue'),p=cardAmt(b,'paidMonth');
  const n=Object.keys(b).reduce((a,c)=>a+b[c].overdueCount,0);
  const sub=(lead,rest)=>[lead].concat(rest).map(esc).join('<br>');
- const card=(l,main,s,cls)=>`<div class='card${cls||''}'><div class='l'>${l}</div><div class='v'>${esc(main)}</div><div class='s'>${s}</div></div>`;
- $('#cards').innerHTML=card('Outstanding',o.main,sub('Sent invoices',o.rest))+card('Overdue',v.main,sub(n+(n===1?' invoice':' invoices'),v.rest),n?' warn':'')+card('Paid this month',p.main,sub('Invoices',p.rest))+card('Documents',String(st.count),sub('Saved in this browser',[]));}
+ const card=(l,main,s,icon,cls)=>`<div class='card${cls||''}'><div class='card-icon' aria-hidden='true'><svg viewBox='0 0 24 24'><use href='#${icon}'></use></svg></div><div class='l'>${l}</div><div class='v'>${esc(main)}</div><div class='s'>${s}</div></div>`;
+ $('#cards').innerHTML=card('Outstanding',o.main,sub('Sent invoices',o.rest),'iconCreate')+card('Overdue',v.main,sub(n+(n===1?' invoice':' invoices'),v.rest),'iconCompany',n?' warn':'')+card('Paid this month',p.main,sub('Invoices',p.rest),'iconDashboard')+card('Documents',String(st.count),sub('Saved in this browser',[]),'iconLibrary');}
 
 // ---------- Document list ----------
 function dashRows(all){
@@ -75,18 +75,24 @@ function renderDashboard(){
   return;}
  const tr=rows.map(d=>{
   const eff=Store.effStatus(d,today),L=Store.statusList(d.type),id=esc(d.id);
-  const sel=`<select data-st='${id}'${L.length<2?' disabled':''}>${L.map(s=>`<option${s===d.status?' selected':''}>${s}</option>`).join('')}</select>`;
+  const sel=`<select data-st='${id}' aria-label='Status for ${esc(d.no)}'${L.length<2?' disabled':''}>${L.map(s=>`<option${s===d.status?' selected':''}>${s}</option>`).join('')}</select>`;
   const od=eff==='Overdue'?` <span class='badge Overdue'>Overdue</span>`:'';
-  return `<tr class='click' data-id='${id}'><td>${esc(d.no)}</td><td>${esc(TYPES[d.type]?TYPES[d.type].label:d.type)}</td><td>${esc(d.clientName||'-')}</td><td>${esc(fmtDate(d.date))}</td><td>${esc(d.due?fmtDate(d.due):'-')}</td><td class='r'>${esc(money2(d.grand,d.currency))}</td><td>${sel}${od}</td><td><div class='acts'><button data-dup='${id}'>Duplicate</button><button class='del' data-del='${id}'>Delete</button></div></td></tr>`;}).join('');
- $('#docList').innerHTML=`<table class='dt'><thead><tr><th>No.</th><th>Type</th><th>Client</th><th>Date</th><th>Due</th><th class='r'>Amount</th><th>Status</th><th></th></tr></thead><tbody>${tr}</tbody></table>`;}
+  return `<tr class='click' data-id='${id}'><td><button class='doc-open' data-open='${id}'>${esc(d.no)}</button></td><td>${esc(TYPES[d.type]?TYPES[d.type].label:d.type)}</td><td class='doc-client'>${esc(d.clientName||'-')}</td><td>${esc(fmtDate(d.date))}</td><td>${esc(d.due?fmtDate(d.due):'-')}</td><td class='r'>${esc(money2(d.grand,d.currency))}</td><td>${sel}${od}</td><td><div class='acts'><button data-dup='${id}'>Duplicate</button><button class='del' data-del='${id}'>Delete</button></div></td></tr>`;}).join('');
+ $('#docList').innerHTML=`<table class='dt'><thead><tr><th scope='col'>No.</th><th scope='col'>Type</th><th scope='col'>Client</th><th scope='col'>Date</th><th scope='col'>Due</th><th scope='col' class='r'>Amount</th><th scope='col'>Status</th><th scope='col'><span class='sr-only'>Actions</span></th></tr></thead><tbody>${tr}</tbody></table>`;}
 
 function bindDashboard(){
- const seg=(sel,key)=>$(sel).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;dFilter[key]=b.dataset.v;$$(sel+' button').forEach(x=>x.classList.toggle('on',x===b));renderDashboard();});
+ const seg=(sel,key)=>$(sel).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;dFilter[key]=b.dataset.v;$$(sel+' button').forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b));});renderDashboard();});
  seg('#fType','type');seg('#fStatus','status');
  $('#dSearch').addEventListener('input',e=>{dFilter.q=e.target.value;renderDashboard();});
- $('#btnNew').addEventListener('click',e=>{e.stopPropagation();$('#newMenu').classList.toggle('hide');});
- document.addEventListener('click',e=>{if(!e.target.closest('.newwrap'))$('#newMenu').classList.add('hide');});
- $('#newMenu').addEventListener('click',e=>{const b=e.target.closest('[data-new]');if(!b)return;$('#newMenu').classList.add('hide');newDocOf(b.dataset.new);});
+ const closeNew=()=>{$('#newMenu').classList.add('hide');$('#btnNew').setAttribute('aria-expanded','false');};
+ $('#btnNew').addEventListener('click',e=>{e.stopPropagation();$('#newMenu').classList.toggle('hide');$('#btnNew').setAttribute('aria-expanded',String(!$('#newMenu').classList.contains('hide')));});
+ document.addEventListener('click',e=>{if(!e.target.closest('.newwrap'))closeNew();});
+ $('#newMenu').addEventListener('click',e=>{const b=e.target.closest('[data-new]');if(!b)return;closeNew();newDocOf(b.dataset.new);});
+ const nav=$('#dashboardNavToggle'),closeNav=()=>{document.body.classList.remove('dashboard-nav-open');nav.setAttribute('aria-expanded','false');nav.setAttribute('aria-label','Open navigation');};
+ nav.addEventListener('click',()=>{const open=document.body.classList.toggle('dashboard-nav-open');nav.setAttribute('aria-expanded',String(open));nav.setAttribute('aria-label',open?'Close navigation':'Open navigation');});
+ $('#dashboardNavBackdrop').addEventListener('click',closeNav);
+ $('#sideNav').addEventListener('click',e=>{if(e.target.closest('a'))closeNav();});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.body.classList.contains('dashboard-nav-open')){closeNav();nav.focus();}closeNew();}});
  $('#docList').addEventListener('change',e=>{const s=e.target.closest('select[data-st]');if(!s)return;Store.setStatus(s.dataset.st,s.value);renderDashboard();});
  $('#docList').addEventListener('click',e=>{
   const nb=e.target.closest('[data-new]');if(nb){newDocOf(nb.dataset.new);return;}

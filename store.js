@@ -60,8 +60,8 @@ const Store=(()=>{
   if(!rec&&kind==='clients')rec=a.find(x=>low(x.name)===low(obj.name));
   if(!rec&&kind==='items')rec=a.find(x=>low(x.d)===low(obj.d));
   if(rec)Object.assign(rec,obj,{id:rec.id});else{rec=Object.assign({},obj,{id:uid()});a.push(rec);}
-  libPut(kind,a);return rec;}
- function libRemove(kind,id){libPut(kind,lib(kind).filter(x=>x.id!==id));}
+  return libPut(kind,a)?rec:null;}
+ function libRemove(kind,id){return libPut(kind,lib(kind).filter(x=>x.id!==id));}
 
  // First run: copy old quick items into the library and seed default terms. Old keys are left in place.
  function migrate(types){
