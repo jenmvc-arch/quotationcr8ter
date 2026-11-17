@@ -23,7 +23,7 @@ const Store=(()=>{
   const all=docs();const rec=s.docId?all.find(d=>d.id===s.docId):null;
   const id=rec?rec.id:uid();
   const snap=clone(s);snap.docId=id;delete snap.restored;
-  const meta={id:id,type:s.type,no:s.doc.no,clientName:s.client.name,date:s.doc.date,due:s.type==='receipt'?'':s.doc.due,currency:s.doc.currency,grand:r2(grand),updatedAt:Date.now(),snapshot:snap};
+  const meta={id:id,type:s.type,no:s.doc.no,clientName:s.client.name,date:s.doc.date,due:s.type==='receipt'?'':s.doc.due,currency:s.doc.currency,grand:r2(grand),sourceDocumentId:rec?rec.sourceDocumentId:(s.sourceDocumentId||''),updatedAt:Date.now(),snapshot:snap};
   if(rec){meta.status=validStatus(s.type,rec.status);Object.assign(rec,meta);}
   else{meta.status=validStatus(s.type,'Draft');all.push(meta);}
   return putDocs(all)?id:null;}
@@ -37,7 +37,7 @@ const Store=(()=>{
   const all=docs(),src=all.find(x=>x.id===id);if(!src)return null;
   const nid=uid(),snap=clone(src.snapshot);
   snap.docId=nid;snap.doc.no=newNo;snap.nos=snap.nos||{};snap.nos[snap.type]=newNo;
-  const c=clone(src);c.id=nid;c.no=newNo;c.status=validStatus(c.type,'Draft');delete c.paidAt;c.updatedAt=Date.now();c.snapshot=snap;
+  const c=clone(src);c.id=nid;c.no=newNo;c.sourceDocumentId=id;c.status=validStatus(c.type,'Draft');delete c.paidAt;c.updatedAt=Date.now();c.snapshot=snap;
   all.push(c);return putDocs(all)?nid:null;}
  function stats(list,today){
   today=today||todayStr();const ym=today.slice(0,7),out={};
@@ -47,7 +47,7 @@ const Store=(()=>{
    const st=effStatus(d,today),s=slot(d.currency||'MYR');
    if(st==='Sent'||st==='Overdue')s.outstanding=r2(s.outstanding+d.grand);
    if(st==='Overdue'){s.overdue=r2(s.overdue+d.grand);s.overdueCount++;}
-   if(st==='Paid'&&(d.paidAt?ymOf(d.paidAt):String(d.date||'').slice(0,7))===ym)s.paidMonth=r2(s.paidMonth+d.grand);
+   (d.payments||[]).forEach(payment=>{if(payment.status!=='Reversed'&&String(payment.paidDate||'').slice(0,7)===ym)s.paidMonth=r2(s.paidMonth+Number(payment.amount||0));});
   });
   return{byCur:out,count:list.length};}
 
@@ -73,7 +73,7 @@ const Store=(()=>{
    wr(K.terms,t);}
   if(rd(K.clients,null)===null)wr(K.clients,[]);}
 
- function assistantConfig(){return rd(K.assistant,{endpoint:'https://max2.jojocode.com/v1/chat/completions',model:'',apiKey:''});}
- function saveAssistantConfig(v){return wr(K.assistant,{endpoint:String(v.endpoint||'').trim(),model:String(v.model||'').trim(),apiKey:String(v.apiKey||'').trim()});}
+ function assistantConfig(){const saved=rd(K.assistant,{});if(saved&&(saved.apiKey||saved.endpoint||saved.model))wr(K.assistant,{endpoint:'',model:''});return{endpoint:'',model:'',apiKey:''};}
+ function saveAssistantConfig(){return wr(K.assistant,{endpoint:'',model:''});}
  return{K:K,uid:uid,r2:r2,clone:clone,statusList:statusList,validStatus:validStatus,effStatus:effStatus,todayStr:todayStr,docs:docs,getDoc:getDoc,saveDoc:saveDoc,setStatus:setStatus,removeDoc:removeDoc,duplicateDoc:duplicateDoc,stats:stats,lib:lib,libSave:libSave,libRemove:libRemove,migrate:migrate,assistantConfig:assistantConfig,saveAssistantConfig:saveAssistantConfig};
 })();

@@ -65,6 +65,42 @@ function renderCards(all){
 function dashRows(all){
  const q=dFilter.q.trim().toLowerCase(),today=Store.todayStr();
  return all.filter(d=>(!dFilter.type||d.type===dFilter.type)&&(!dFilter.status||Store.effStatus(d,today)===dFilter.status)&&(!q||String(d.no||'').toLowerCase().indexOf(q)>=0||String(d.clientName||'').toLowerCase().indexOf(q)>=0)).sort((a,b)=>b.updatedAt-a.updatedAt);}
+const EXPORT_HEADERS=['Number','Type','Client','Date','Due date','Currency','Amount','Status'];
+function exportRows(){
+ const today=Store.todayStr();
+ return dashRows(Store.docs()).map(d=>[
+  String(d.no||''),TYPES[d.type]?TYPES[d.type].label:String(d.type||''),String(d.clientName||''),
+  String(d.date||''),String(d.due||''),String(d.currency||'MYR'),
+  Number.isFinite(Number(d.grand))?Number(d.grand):0,Store.effStatus(d,today)
+ ]);}
+function exportName(ext){return 'documents-'+Store.todayStr()+'.'+ext;}
+function exportExcel(){
+ const rows=exportRows(),status=$('#exportStatus');
+ if(!rows.length){status.textContent='No matching documents to export.';return;}
+ try{
+  if(typeof XLSX==='undefined')throw new Error('Spreadsheet writer unavailable');
+  const sheet=XLSX.utils.aoa_to_sheet([EXPORT_HEADERS,...rows]);
+  sheet['!cols']=[{wch:20},{wch:20},{wch:30},{wch:14},{wch:14},{wch:12},{wch:16},{wch:14}];
+  rows.forEach((row,i)=>{const cell=sheet['G'+(i+2)];if(cell)cell.z='#,##0.00';});
+  const book=XLSX.utils.book_new();XLSX.utils.book_append_sheet(book,sheet,'Documents');
+  XLSX.writeFile(book,exportName('xlsx'));
+  status.textContent='Excel export started for '+rows.length+(rows.length===1?' document.':' documents.');
+ }catch(err){console.error(err);status.textContent='Could not export Excel. Please try again.';}}
+async function exportPdf(){
+ const rows=exportRows(),status=$('#exportStatus'),button=$('#exportPdf');
+ if(!rows.length){status.textContent='No matching documents to export.';return;}
+ if(typeof html2pdf==='undefined'){status.textContent='PDF export is unavailable. Please reload and try again.';return;}
+ const report=document.createElement('div');
+ report.style.cssText='width:760px;padding:24px;font:12px Arial,sans-serif;color:#102044;background:#fff;box-sizing:border-box';
+ const header=EXPORT_HEADERS.map(h=>`<th style="padding:8px 6px;text-align:left;border-bottom:2px solid #cddbe5;background:#eff8fc">${esc(h)}</th>`).join('');
+ const body=rows.map(row=>`<tr style="break-inside:avoid;page-break-inside:avoid">${row.map((v,i)=>`<td style="padding:8px 6px;border-bottom:1px solid #dfe8f0;vertical-align:top;${i===6?'text-align:right;':''}">${esc(i===6?fmt(v):v)}</td>`).join('')}</tr>`).join('');
+ report.innerHTML=`<h1 style="font-size:21px;margin:0 0 6px">Documents</h1><p style="margin:0 0 18px;color:#52647d">Filtered document list · ${esc(Store.todayStr())}</p><table style="width:100%;table-layout:fixed;border-collapse:collapse;overflow-wrap:anywhere"><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>`;
+ button.disabled=true;status.textContent='Preparing PDF…';
+ try{
+  await html2pdf().set({margin:10,filename:exportName('pdf'),image:{type:'jpeg',quality:.98},html2canvas:{scale:2,backgroundColor:'#ffffff'},jsPDF:{unit:'mm',format:'a4',orientation:'landscape'},pagebreak:{mode:['css','legacy'],avoid:'tr'}}).from(report).save();
+  status.textContent='PDF export started for '+rows.length+(rows.length===1?' document.':' documents.');
+ }catch(err){console.error(err);status.textContent='Could not export PDF. Please try again.';}
+ finally{button.disabled=false;}}
 function renderDashboard(){
  const all=Store.docs(),today=Store.todayStr();
  renderCards(all);
@@ -81,6 +117,8 @@ function renderDashboard(){
  $('#docList').innerHTML=`<table class='dt'><thead><tr><th scope='col'>No.</th><th scope='col'>Type</th><th scope='col'>Client</th><th scope='col'>Date</th><th scope='col'>Due</th><th scope='col' class='r'>Amount</th><th scope='col'>Status</th><th scope='col'><span class='sr-only'>Actions</span></th></tr></thead><tbody>${tr}</tbody></table>`;}
 
 function bindDashboard(){
+ $('#exportPdf').addEventListener('click',exportPdf);
+ $('#exportXlsx').addEventListener('click',exportExcel);
  const seg=(sel,key)=>$(sel).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;dFilter[key]=b.dataset.v;$$(sel+' button').forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b));});renderDashboard();});
  seg('#fType','type');seg('#fStatus','status');
  $('#dSearch').addEventListener('input',e=>{dFilter.q=e.target.value;renderDashboard();});

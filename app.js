@@ -51,7 +51,7 @@ function loadState(){
 
 function calc(s){
  const t=s.type;
- const sub=round2(s.items.reduce((a,i)=>a+(t==='receipt'?num(i.p):num(i.q)*num(i.p)),0));
+ const sub=round2(s.items.reduce((a,i)=>a+(t==='receipt'?num(i.receiptAmount==null?num(i.q)*num(i.p):i.receiptAmount):num(i.q)*num(i.p)),0));
  let disc=0;
  if(t!=='receipt'&&s.toggles.discount){disc=s.doc.discountType==='percent'?sub*num(s.doc.discountVal)/100:num(s.doc.discountVal);disc=round2(Math.min(Math.max(disc,0),sub));}
  const tax=s.toggles.tax?round2((sub-disc)*num(s.doc.taxRate)/100):0;
@@ -59,7 +59,20 @@ function calc(s){
  const paid=t==='invoice'?round2(num(s.doc.deposit)):0;
  const grand=t==='invoice'?round2(total-paid):total;
  return{sub:sub,disc:disc,tax:tax,total:total,paid:paid,grand:grand};}
-const rowAmt=it=>state.type==='receipt'?num(it.p):num(it.q)*num(it.p);
+function validateDocumentState(s){
+ const issues=[],items=Array.isArray(s.items)?s.items:[];
+ if(!String(s.client&&s.client.name||'').trim())issues.push('Client name is required.');
+ if(!items.length||items.length>100)issues.push('Add between 1 and 100 line items.');
+ items.forEach((item,index)=>{const q=Number(item.q),p=Number(item.p);if(!Number.isFinite(q)||q<=0||Math.round(q*1000)!==q*1000)issues.push('Line '+(index+1)+' quantity must be positive with up to 3 decimal places.');if(!Number.isFinite(p)||p<0||Math.round(p*100)!==p*100)issues.push('Line '+(index+1)+' price must be non-negative with up to 2 decimal places.');if(!String(item.d||'').trim())issues.push('Line '+(index+1)+' description is required.');if(String(item.d||'').length>2000)issues.push('Line '+(index+1)+' description is too long.');});
+ const subtotal=items.reduce((sum,item)=>sum+Number(item.q)*Number(item.p),0),rate=Number(s.doc.taxRate),discount=Number(s.doc.discountVal),deposit=Number(s.doc.deposit);
+ if(!Number.isFinite(subtotal)||!Number.isSafeInteger(Math.round(subtotal*100)))issues.push('Subtotal is outside the supported amount range.');
+ if(!Number.isFinite(rate)||rate<0||rate>100)issues.push('Tax rate must be between 0 and 100.');
+ if(!Number.isFinite(discount)||discount<0||(s.doc.discountType==='amount'&&discount>subtotal))issues.push('Discount is outside the allowed range.');
+ if(!Number.isFinite(deposit)||deposit<0)issues.push('Deposit must be a non-negative amount.');
+ if(s.type==='invoice'&&deposit>Math.max(0,subtotal-discount+(subtotal-discount)*rate/100))issues.push('Deposit cannot exceed the invoice total.');
+ ['date','due'].forEach(key=>{const value=s.doc[key];if(value&&(!/^\d{4}-\d{2}-\d{2}$/.test(value)||isNaN(new Date(value+'T00:00:00').getTime())))issues.push((key==='date'?'Document date':'Due date')+' is invalid.');});
+ return Array.from(new Set(issues));}
+const rowAmt=it=>state.type==='receipt'?num(it.receiptAmount==null?num(it.q)*num(it.p):it.receiptAmount):num(it.q)*num(it.p);
 function fmt(n){return Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function money(n,cur){cur=cur||state.doc.currency;return (cur==='MYR'?'RM':cur)+' '+fmt(n);}
 
@@ -117,7 +130,8 @@ function scheduleSave(){clearTimeout(saveTimer);setStatus('Unsaved changes');sav
 function commitNo(){const c=read(KEYS.counters)||{};Object.keys(state.nos).forEach(t=>{const m=/^[A-Z]+-\d{4}-(\d+)$/.exec(state.nos[t]||'');if(!m||!TYPES[t])return;const n=parseInt(m[1],10);if(n>(c[t]||0))c[t]=n;});write(KEYS.counters,c);}
 function saveNow(manual){
  clearTimeout(saveTimer);state.nos[state.type]=state.doc.no;
- const ok=write(KEYS.draft,state)&&write(KEYS.profile,{company:state.company,bank:state.bank,logo:state.logo});
+ if(manual){const issues=validateDocumentState(state);if(issues.length){setStatus('Cannot save: '+issues[0]);alert('Please review before saving:\n'+issues.join('\n'));return;}}
+ const ok=write(KEYS.draft,state);
  let docOk=true;
  if(manual){
   commitNo();
@@ -140,11 +154,12 @@ function changed(skipPaper){renderSum();if(skipPaper)syncForm();else renderPaper
 
 function setType(t){
  const prev=state.type;if(prev===t||!TYPES[t])return;
+ state.sourceDocumentId=state.docId||state.sourceDocumentId||'';state.docId='';
  state.nos[prev]=state.doc.no;
  if(!state.doc.due||state.doc.due===addDays(state.doc.date,TYPES[prev].dueDays))state.doc.due=addDays(state.doc.date,TYPES[t].dueDays);
  if(!state.notes||state.notes===TYPES[prev].notes)state.notes=TYPES[t].notes;
  if(!state.termsText||state.termsText===TYPES[prev].terms)state.termsText=TYPES[t].terms;
- if(t==='receipt')state.items.forEach(i=>{i.p=round2(num(i.q)*num(i.p));i.q=1;});
+ if(t==='receipt')state.items.forEach(i=>{i.receiptAmount=round2(num(i.q)*num(i.p));});else if(prev==='receipt')state.items.forEach(i=>{delete i.receiptAmount;});
  state.type=t;state.doc.no=state.nos[t]||nextNo(t);
  applyTypeUI();renderRows();syncForm();changed();}
 
@@ -161,7 +176,7 @@ function bind(){
  $('#form').addEventListener('input',e=>{const el=e.target;if(!el.dataset.k)return;let v=el.value;if('num' in el.dataset)v=num(v);setPath(state,el.dataset.k,v);changed();});
  $('#form').addEventListener('change',e=>{const el=e.target;if(el.dataset.t){state.toggles[el.dataset.t]=el.checked;changed();}});
  $('#swatches').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;state.accent=b.dataset.accent;syncForm();changed();});
- $('#rows').addEventListener('input',e=>{const el=e.target,row=el.closest('.irow');if(!row||!el.dataset.f)return;const it=state.items[+row.dataset.i];if(!it)return;it[el.dataset.f]=el.dataset.f==='d'?el.value:num(el.value);if(state.type==='receipt')it.q=1;const a=row.querySelector('.amt');if(a)a.textContent=fmt(rowAmt(it));changed();});
+ $('#rows').addEventListener('input',e=>{const el=e.target,row=el.closest('.irow');if(!row||!el.dataset.f)return;const it=state.items[+row.dataset.i];if(!it)return;it[el.dataset.f]=el.dataset.f==='d'?el.value:num(el.value);const a=row.querySelector('.amt');if(a)a.textContent=fmt(rowAmt(it));changed();});
  $('#rows').addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;state.items.splice(+b.dataset.del,1);if(!state.items.length)state.items.push({d:'',q:1,p:0});renderRows();changed();});
  $('#addItem').addEventListener('click',()=>{state.items.push({d:'',q:1,p:0});renderRows();changed();const r=$$('#rows .irow'),i=r[r.length-1].querySelector('[data-f=d]');if(i)i.focus();});
  $('#btnLogo').addEventListener('click',()=>$('#logoFile').click());
@@ -181,7 +196,7 @@ function curLbl(){return state.doc.currency==='MYR'?'RM':state.doc.currency;}
 function rowHtml(it,i){
  const rec=state.type==='receipt';
  const lead=`<td>${i+1}</td><td>${itemDescEd(i,it)}</td>`;
- if(rec)return `<tr>${lead}<td class='r'>${edI(i,'p',fmt(num(it.p)),'0.00')}</td></tr>`;
+ if(rec)return `<tr>${lead}<td class='r'>${edI(i,'receiptAmount',fmt(rowAmt(it)),'0.00')}</td></tr>`;
  return `<tr>${lead}<td class='c'>${edI(i,'q',it.q,'0')}</td><td class='r'>${edI(i,'p',fmt(num(it.p)),'0.00')}</td><td class='r' data-calc='amt:${i}'>${fmt(rowAmt(it))}</td></tr>`;}
 function headHtml(){
  const T=TYPES[state.type],long=T.label.length>12;
@@ -272,7 +287,6 @@ function paperEdit(el){
   const it=state.items[+el.dataset.i];if(!it)return;
   const f=el.dataset.f;
   it[f]=f==='d'?txt:num(txt.split(',').join(''));
-  if(state.type==='receipt')it.q=1;
   renderRows();
  }else return;
  paperStale=true;refreshCalc();changed(true);}

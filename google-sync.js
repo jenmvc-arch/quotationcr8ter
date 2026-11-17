@@ -11,7 +11,7 @@
 const GoogleSync = (() => {
   const CONFIG_KEY = 'ig.googleSync.config.v1';
   const QUEUE_KEY = 'ig.googleSync.queue.v1';
-  const DEFAULT_CONFIG = { endpoint: 'https://script.google.com/macros/s/AKfycbyc3y-pUYNlvAaTm-KSQSbjEAer5sEc4tMtHfZ8P2-4ToAU2YfSUgXwbOzeiZ6i3as6/exec', enabled: true, timeoutMs: 20000 };
+  const DEFAULT_CONFIG = { endpoint: '', enabled: false, timeoutMs: 20000 };
 
   const read = (key, fallback) => {
     try {
@@ -30,15 +30,12 @@ const GoogleSync = (() => {
   };
   const round2 = value => Math.round((number(value) + Number.EPSILON) * 100) / 100;
 
-  function config() { return Object.assign({}, DEFAULT_CONFIG, read(CONFIG_KEY, {})); }
-  function saveConfig(values) {
-    const next = Object.assign({}, DEFAULT_CONFIG, values || {});
-    next.endpoint = clean(next.endpoint);
-    next.enabled = Boolean(next.enabled && next.endpoint);
-    next.timeoutMs = Math.max(5000, Number(next.timeoutMs) || DEFAULT_CONFIG.timeoutMs);
-    write(CONFIG_KEY, next);
-    return Object.assign({}, next);
+  function config() {
+    const saved = read(CONFIG_KEY, {});
+    if (saved && (saved.endpoint || saved.enabled)) write(CONFIG_KEY, DEFAULT_CONFIG);
+    return Object.assign({}, DEFAULT_CONFIG);
   }
+  function saveConfig() { write(CONFIG_KEY, DEFAULT_CONFIG); return Object.assign({}, DEFAULT_CONFIG); }
   function queue() { return read(QUEUE_KEY, []); }
   function setQueue(items) { return write(QUEUE_KEY, items.slice(0, 100)); }
 
@@ -140,16 +137,17 @@ const GoogleSync = (() => {
       removeQueued(payload.quotationId);
       return Object.assign({ ok: true, synced: true, payload }, result);
     } catch (error) {
-      enqueue(payload, error.message);
+      const queued = enqueue(payload, error.message);
       if (opts.throwOnError) throw error;
-      return { ok: false, synced: false, queued: true, payload, error: error.message };
+      return { ok: false, synced: false, queued, payload, error: error.message, queueFull: !queued };
     }
   }
 
   function enqueue(payload, error) {
     const items = queue().filter(item => item.payload.quotationId !== payload.quotationId);
+    if (items.length >= 100) return false;
     items.push({ payload, error: clean(error), queuedAt: new Date().toISOString() });
-    setQueue(items);
+    return setQueue(items);
   }
   function removeQueued(id) { setQueue(queue().filter(item => item.payload.quotationId !== id)); }
   async function retry() {

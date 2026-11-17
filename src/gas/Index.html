@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>QuotationCr8ter Internal System</title>
+  <style>
+    :root{font:16px/1.5 system-ui,-apple-system,sans-serif;color:#20201d;background:#f4f1e8}*{box-sizing:border-box}body{margin:0}.bar{padding:9px 16px;background:#f7e3aa;border-bottom:1px solid #d2b45f;color:#453711;font-size:13px;font-weight:700}.wrap{max-width:760px;margin:48px auto;padding:0 20px}.sheet{padding:24px;background:white;border:1px solid #d9d5ca;border-radius:6px}.sheet h1{margin:0 0 8px;font-size:26px}.muted{color:#666}.status{margin-top:20px;padding:12px;background:#f7f6f1;border:1px solid #d9d5ca;border-radius:4px;white-space:pre-wrap}.status.error{color:#8a2f22;background:#fff3f0}.status.ok{color:#235b41;background:#eef7ef}button{margin-top:16px;padding:10px 14px;border:0;border-radius:4px;background:#395a46;color:white;font:inherit;cursor:pointer}button:disabled{opacity:.6;cursor:wait}
+  </style>
+</head>
+<body>
+  <div class="bar">STAGING SHELL - Google access is verified by Apps Script</div>
+  <main class="wrap"><section class="sheet"><h1>QuotationCr8ter Internal System</h1><p class="muted">This staging shell checks the signed-in Workspace identity and Apps Script configuration. It does not load or change business records.</p><button id="check" type="button">Check access</button><div class="status" id="status" role="status" aria-live="polite">Not checked</div></section></main>
+  <script>
+    const statusBox=document.getElementById('status'),button=document.getElementById('check');
+    button.addEventListener('click',()=>{button.disabled=true;statusBox.className='status';statusBox.textContent='Checking account…';google.script.run.withSuccessHandler(result=>{button.disabled=false;if(result&&result.ok){statusBox.className='status ok';statusBox.textContent=JSON.stringify(result.data,null,2);}else{statusBox.className='status error';statusBox.textContent=result&&result.error?result.error.code+': '+result.error.message:'Access check failed.';}}).withFailureHandler(()=>{button.disabled=false;statusBox.className='status error';statusBox.textContent='Apps Script call failed. Check the deployment and execution log.';}).api({action:'session.get',requestId:crypto.randomUUID(),payload:{}});});
+  </script>
+</body>
+</html>

@@ -288,6 +288,12 @@ body[data-page='dashboard'] .sidenav a.on:before{background:#ffd34e}
 #pageDashboard .dashboard-documents{min-width:0;padding:24px;border:1px solid #dfe8f0;border-radius:16px;background:#fff;box-shadow:0 5px 20px rgba(38,74,102,.045)}
 #pageDashboard .dashboard-list-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}
 #pageDashboard .dashboard-list-heading h3{font-size:20px;font-weight:700;letter-spacing:0;color:#102044}
+#pageDashboard .dashboard-list-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:12px}
+#pageDashboard .export-group{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+#pageDashboard .export-group span{margin-right:4px;color:#52647d;font-size:12px}
+#pageDashboard .export-group .btn{height:40px}
+#pageDashboard .export-status{color:#52647d;font-size:12px;line-height:1.5}
+#pageDashboard .export-status:not(:empty){margin:-8px 0 14px}
 #pageDashboard .assistant-button{height:40px;background:#eaf5f8;border-color:#d5e9ef;color:#173f59}
 #pageDashboard .assistant-button:hover{background:#dceff3}
 #pageDashboard .filters{gap:10px;margin-bottom:16px}
@@ -562,3 +568,7 @@ body[data-page='company'] .sidenav a.on:before{background:#ffd34e}
  #pageCompany .company-logo-frame{width:100%;max-width:260px}
 }
 @media (prefers-reduced-motion:reduce){#pageCompany .btn{transition:none}}
+:root{--demo-banner-height:28px}
+.demo-banner{position:fixed;top:0;left:0;right:0;z-index:10000;width:100%;height:var(--demo-banner-height);min-height:0;display:flex;align-items:center;justify-content:center;background:#f7e3aa;color:#453711;border-bottom:1px solid #d2b45f;font:600 11px/1.2 system-ui,sans-serif;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:4px 8px}
+body.demo-mode{padding-top:var(--demo-banner-height)}
+body.demo-mode .auth-gate{top:var(--demo-banner-height);height:calc(100% - var(--demo-banner-height))}

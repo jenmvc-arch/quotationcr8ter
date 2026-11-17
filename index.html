@@ -7,7 +7,7 @@
 <link rel='stylesheet' href='styles.css'>
 <link rel='stylesheet' href='pages.css'>
 <link rel='stylesheet' href='assistant-items.css'>
-<link rel='stylesheet' href='modern-saas.css?v=company-studio-1'>
+<link rel='stylesheet' href='modern-saas.css?v=document-export-1'>
 <link rel="icon" href="assets/logo.png"></head>
 <body data-view='form' data-page='dashboard'>
 <div class='auth-gate' id='authGate'>
@@ -150,7 +150,8 @@
 </section>
 <div class='cards' id='cards'></div>
 <section class='dashboard-documents' aria-labelledby='dashboardDocumentsTitle'>
-<div class='dashboard-list-heading'><h3 id='dashboardDocumentsTitle'>Documents</h3><button class='btn assistant-button' id='btnAssistant'>Paste with Smart Assistant</button></div>
+<div class='dashboard-list-heading'><h3 id='dashboardDocumentsTitle'>Documents</h3><div class='dashboard-list-actions'><div class='export-group' role='group' aria-label='Export filtered documents'><span>Export filtered list</span><button class='btn' id='exportPdf' type='button'>PDF</button><button class='btn' id='exportXlsx' type='button'>Excel</button></div><button class='btn assistant-button' id='btnAssistant'>Paste with Smart Assistant</button></div></div>
+<p class='export-status' id='exportStatus' role='status' aria-live='polite'></p>
 <div class='filters'>
 <div class='seg' id='fType' role='group' aria-label='Document type'><button data-v='' class='on' aria-pressed='true'>All</button><button data-v='quotation' aria-pressed='false'>Quotation</button><button data-v='proforma' aria-pressed='false'>Proforma</button><button data-v='invoice' aria-pressed='false'>Invoice</button><button data-v='receipt' aria-pressed='false'>Receipt</button></div>
 <div class='seg' id='fStatus' role='group' aria-label='Document status'><button data-v='' class='on' aria-pressed='true'>Any status</button><button data-v='Draft' aria-pressed='false'>Draft</button><button data-v='Sent' aria-pressed='false'>Sent</button><button data-v='Overdue' aria-pressed='false'>Overdue</button><button data-v='Paid' aria-pressed='false'>Paid</button></div>
@@ -209,7 +210,7 @@
 <label class='f assistant-paste-field'><span>Source content</span><textarea id='assistantPaste' rows='22' placeholder='Paste your full content here...'></textarea></label>
 <div class='assistant-actions'><button class='btn' id='assistantClear'>Clear</button><div class='sp'></div><button class='btn' id='assistantSettings'>AI settings</button><button class='btn primary' id='assistantParse'>Continue to categories</button></div>
 <div class='assistant-settings hide' id='assistantSettingsBox'>
-<div class='assistant-settings-title'>JOJO Code AI enhancement</div><p class='assistant-help'>Use your JOJO Code API key and model. The pasted content is sent only when you click Enhance with AI.</p>
+<div class='assistant-settings-title'>AI enhancement</div><p class='assistant-help'>AI enhancement is disabled in this local demo.</p>
 <label class='f'><span>Endpoint URL</span><input id='assistantEndpoint' placeholder='https://max2.jojocode.com/v1/chat/completions'></label>
 <label class='f'><span>Model</span><input id='assistantModel' placeholder='gpt-4o-mini'></label>
 <label class='f'><span>API key</span><input id='assistantApiKey' type='password' placeholder='sk-... (stored locally on this browser)'></label>
@@ -222,6 +223,7 @@
 <div class='assistant-foot hide' id='assistantFoot'><button class='btn' id='assistantCancel'>Cancel</button><div class='sp'></div><button class='btn' id='assistantReparse'>Re-parse</button><button class='btn' id='assistantEnhance'>Enhance with AI</button><button class='btn primary' id='assistantSave'>Save draft</button></div>
 </aside>
 <script src='vendor/html2pdf.bundle.min.js'></script>
+<script src='vendor/xlsx.core.min.js'></script>
 <script src='store.js'></script>
 <script src='auth.js'></script>
 <script src='google-sync.js'></script>

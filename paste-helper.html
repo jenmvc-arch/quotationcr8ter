@@ -1,0 +1,16 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Local Apps Script Paste Helper</title>
+<style>body{font:14px system-ui;margin:24px;max-width:1000px}textarea{width:100%;height:70vh;font:12px ui-monospace}button{margin:8px 8px 8px 0;padding:8px 12px}</style>
+<h1>Apps Script paste helper</h1>
+<p>Local-only helper. It reads generated files from this workspace and copies them to the browser clipboard.</p>
+<button id="gs">Copy combined .gs</button>
+<button id="html">Copy Index.html</button>
+<textarea id="out" readonly></textarea>
+<script>
+const files = ['Code.gs','Config.gs','Auth.gs','Schema.gs','Setup.gs','Services.gs'];
+const out = document.querySelector('#out');
+async function text(path){ return fetch(path).then(r => r.text()); }
+document.querySelector('#gs').onclick = async () => { const value = (await Promise.all(files.map(f => text('/src/gas/' + f)))).join('\n\n'); out.value=value; await navigator.clipboard.writeText(value); document.querySelector('#gs').textContent='Copied combined .gs'; };
+document.querySelector('#html').onclick = async () => { const value=await text('/src/gas/Index.html'); out.value=value; await navigator.clipboard.writeText(value); document.querySelector('#html').textContent='Copied Index.html'; };
+</script>
